@@ -73,7 +73,15 @@
       place-items: center;
       background: #182538;
       border: 1px solid #304158;
-      font-size: 24px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .brand-name {
@@ -305,8 +313,12 @@
       font-weight: 600;
     }
 
-    .moon {
-      font-size: 22px;
+    .model-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      object-fit: cover;
+      display: block;
     }
 
     /* VOICE CALL BUTTON */
@@ -360,8 +372,20 @@
     }
 
     .welcome-logo {
-      font-size: 52px;
-      margin-bottom: 10px;
+      width: 82px;
+      height: 82px;
+      margin: 0 auto 14px;
+      border-radius: 24px;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .welcome-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .welcome h1 {
@@ -446,6 +470,18 @@
       place-items: center;
       background: #182538;
       color: white;
+      overflow: hidden;
+    }
+
+    .avatar.luna-avatar {
+      padding: 0;
+    }
+
+    .avatar.luna-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .user .avatar {
@@ -726,8 +762,10 @@
         font-size: 16px;
       }
 
-      .moon {
-        font-size: 21px;
+      .model-logo {
+        width: 27px;
+        height: 27px;
+        border-radius: 8px;
       }
 
       .voice-call {
@@ -751,7 +789,10 @@
       }
 
       .welcome-logo {
-        font-size: 44px;
+        width: 68px;
+        height: 68px;
+        border-radius: 20px;
+        margin-bottom: 12px;
       }
 
       .welcome h1 {
@@ -903,7 +944,12 @@
 
     <div class="brand">
 
-      <div class="logo">☾</div>
+      <div class="logo">
+        <img
+          src="Luna profile.webp"
+          alt="Luna AI"
+        >
+      </div>
 
       <div>
         <div class="brand-name">
@@ -988,9 +1034,11 @@
 
       <div class="model">
 
-        <span class="moon">
-          ☾
-        </span>
+        <img
+          class="model-logo"
+          src="Luna profile.webp"
+          alt="Luna"
+        >
 
         <span>
           Luna AI
@@ -1023,7 +1071,10 @@
         >
 
           <div class="welcome-logo">
-            ☾
+            <img
+              src="Luna profile.webp"
+              alt="Luna AI"
+            >
           </div>
 
           <h1>
@@ -1586,22 +1637,6 @@ function showChatMenu(
    SAFE MARKDOWN FORMATTER
    ========================================================= */
 
-/*
-  Luna can now use basic Markdown:
-
-  **bold**
-  *italic*
-  ~~strikethrough~~
-  `inline code`
-  ```code blocks```
-
-  Mathematical symbols are preserved because
-  the original text is never stripped or normalized.
-
-  HTML is escaped first, so Luna's responses
-  cannot inject arbitrary HTML into the page.
-*/
-
 function escapeHTML(text) {
 
   return String(text)
@@ -1624,10 +1659,6 @@ function formatMarkdown(text) {
     escapeHTML(text);
 
 
-  /*
-    Protect fenced code blocks first.
-  */
-
   const codeBlocks = [];
 
   value =
@@ -1647,10 +1678,6 @@ function formatMarkdown(text) {
       }
     );
 
-
-  /*
-    Protect inline code.
-  */
 
   const inlineCode = [];
 
@@ -1672,20 +1699,12 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-    Bold.
-  */
-
   value =
     value.replace(
       /\*\*(.+?)\*\*/g,
       "<strong>$1</strong>"
     );
 
-
-  /*
-    Italic using single *.
-  */
 
   value =
     value.replace(
@@ -1694,20 +1713,12 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-    Strikethrough.
-  */
-
   value =
     value.replace(
       /~~(.+?)~~/g,
       "<del>$1</del>"
     );
 
-
-  /*
-    Restore inline code.
-  */
 
   value =
     value.replace(
@@ -1717,10 +1728,6 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-    Restore fenced code blocks.
-  */
-
   value =
     value.replace(
       /@@CODEBLOCK(\d+)@@/g,
@@ -1729,13 +1736,6 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-    Basic unordered lists.
-
-    "- item"
-    "* item"
-  */
-
   value =
     value.replace(
       /(?:^|\n)(?:- |\* )(.+)(?=\n|$)/g,
@@ -1743,10 +1743,6 @@ function formatMarkdown(text) {
         `<li>${item}</li>`
     );
 
-
-  /*
-    Group consecutive list items.
-  */
 
   value =
     value.replace(
@@ -1759,10 +1755,6 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-    Basic ordered lists.
-  */
-
   value =
     value.replace(
       /(?:^|\n)\d+\.\s+(.+)(?=\n|$)/g,
@@ -1770,10 +1762,6 @@ function formatMarkdown(text) {
         `<li>${item}</li>`
     );
 
-
-  /*
-    Preserve normal newlines.
-  */
 
   value =
     value.replace(
@@ -1859,10 +1847,34 @@ function addMessageElement(
   avatar.className =
     "avatar";
 
-  avatar.textContent =
-    role === "user"
-      ? "●"
-      : "☾";
+
+  if (role === "assistant") {
+
+    avatar.classList.add(
+      "luna-avatar"
+    );
+
+    const avatarImage =
+      document.createElement(
+        "img"
+      );
+
+    avatarImage.src =
+      "Luna profile.webp";
+
+    avatarImage.alt =
+      "Luna";
+
+    avatar.appendChild(
+      avatarImage
+    );
+
+  } else {
+
+    avatar.textContent =
+      "●";
+
+  }
 
 
   const content =
@@ -1873,18 +1885,6 @@ function addMessageElement(
   content.className =
     "message-content";
 
-
-  /*
-    IMPORTANT:
-
-    Previously this used:
-
-      content.textContent = text;
-
-    That caused Markdown to appear literally.
-
-    Now we safely convert Markdown into HTML.
-  */
 
   if (extraClass === "thinking") {
 
