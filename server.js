@@ -1,3 +1,4 @@
+```javascript
 import express from "express";
 
 const app = express();
@@ -143,7 +144,8 @@ async function searchWeb(query, apiKey) {
       },
 
       body: JSON.stringify({
-        query: query
+        query: query,
+        max_results: 8
       })
     }
   );
@@ -207,11 +209,6 @@ function formatSearchResults(searchData) {
   }
 
 
-  /*
-   * Ollama web search normally returns a results array.
-   * Keep this flexible in case the response structure changes.
-   */
-
   const results =
     Array.isArray(searchData.results)
       ? searchData.results
@@ -271,9 +268,14 @@ ${formatted}
 END WEB SEARCH RESULTS.
 
 Use these search results when answering the user's question.
+
 Do not claim you searched the web if no search was actually performed.
+
 Prefer the information from the search results when the question requires current information.
+
 If the search results conflict with your existing knowledge, explain the uncertainty rather than confidently inventing an answer.
+
+When web results contain a useful source URL, mention the source naturally when appropriate.
 `;
 
 }
@@ -444,7 +446,7 @@ Do not pretend that web search results were found.
 
 
     /* =====================================================
-       THINKING INSTRUCTIONS
+       MAXIMUM THINKING
        ===================================================== */
 
     let thinkingContext = "";
@@ -458,15 +460,19 @@ THINKING MODE:
 
 The user enabled "Think harder".
 
-Take additional time to reason carefully before producing your answer.
+Use maximum available reasoning effort.
 
-Check your reasoning for mistakes.
+Carefully analyze the problem before answering.
 
-For complicated questions, work through the problem carefully before answering.
+Check calculations, facts, assumptions, and logical steps for mistakes.
+
+For complicated questions, take the time needed to reason through the problem thoroughly.
+
+When web search results are provided, carefully evaluate them before forming the answer.
 
 Do not expose private chain-of-thought or hidden reasoning.
 
-Only provide the useful conclusion, explanation, calculations, or reasoning summary that the user needs.
+Only provide the useful conclusion, explanation, calculations, or a concise reasoning summary that the user needs.
 
 `;
 
@@ -481,7 +487,12 @@ Only provide the useful conclusion, explanation, calculations, or reasoning summ
       "Sending request to Ollama...",
       {
         thinkHarder,
-        searchWeb: searchWebEnabled
+        thinkingLevel:
+          thinkHarder
+            ? "max"
+            : false,
+        searchWeb:
+          searchWebEnabled
       }
     );
 
@@ -538,12 +549,21 @@ Only provide the useful conclusion, explanation, calculations, or reasoning summ
 
 
               /*
-               * Ollama uses the `think` option
-               * to enable reasoning for supported models.
+               * Maximum reasoning effort.
+               *
+               * Ollama supports thinking levels
+               * for supported models:
+               *
+               * low
+               * medium
+               * high
+               * max
                */
 
               think:
-                thinkHarder,
+                thinkHarder
+                  ? "max"
+                  : false,
 
 
               stream:
@@ -690,3 +710,26 @@ app.listen(
 
   }
 );
+```
+
+### What changed
+
+**Think Harder ON:**
+
+```js
+think: thinkHarder ? "max" : false
+```
+
+So when your frontend sends:
+
+```js
+thinkHarder: true
+```
+
+Luna requests **maximum reasoning effort** from the model.
+
+**Web Search ON:**
+
+```js
+max_results: 8
+```
