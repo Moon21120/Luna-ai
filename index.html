@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
   <title>Luna AI</title>
 
   <style>
@@ -10,7 +14,8 @@
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       width: 100%;
       height: 100%;
@@ -32,10 +37,13 @@
       cursor: pointer;
     }
 
+    /* APP */
+
     .app {
       display: flex;
-      height: 100vh;
       width: 100%;
+      height: 100dvh;
+      min-height: 100dvh;
     }
 
     /* SIDEBAR */
@@ -179,13 +187,17 @@
     .main {
       flex: 1;
       min-width: 0;
+      height: 100%;
       display: flex;
       flex-direction: column;
       background: #0b111a;
     }
 
+    /* TOP BAR */
+
     .topbar {
       height: 64px;
+      min-height: 64px;
       flex-shrink: 0;
       border-bottom: 1px solid #202d3d;
       display: flex;
@@ -208,14 +220,20 @@
 
     .chat {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
-      padding: 35px 25px 150px;
+      overflow-x: hidden;
+      padding: 35px 25px 170px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .chat-inner {
+      width: 100%;
       max-width: 900px;
       margin: 0 auto;
     }
+
+    /* WELCOME */
 
     .welcome {
       text-align: center;
@@ -273,12 +291,18 @@
       display: flex;
       flex-direction: column;
       gap: 28px;
+      width: 100%;
     }
 
     .message {
       display: flex;
       width: 100%;
     }
+
+    /*
+      User messages = left
+      Luna messages = right
+    */
 
     .message.user {
       justify-content: flex-start;
@@ -320,6 +344,7 @@
       line-height: 1.65;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .user .message-content {
@@ -342,10 +367,12 @@
 
     .composer-area {
       position: fixed;
+      z-index: 10;
       bottom: 0;
       left: 270px;
       right: 0;
       padding: 18px 25px 20px;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
       background: linear-gradient(
         transparent,
         #0b111a 25%
@@ -353,6 +380,7 @@
     }
 
     .composer {
+      width: 100%;
       max-width: 900px;
       margin: 0 auto;
       display: flex;
@@ -366,6 +394,7 @@
 
     textarea {
       flex: 1;
+      width: 100%;
       resize: none;
       border: 0;
       outline: 0;
@@ -385,6 +414,7 @@
     .send {
       border: 0;
       cursor: pointer;
+      flex-shrink: 0;
       border-radius: 11px;
       width: 42px;
       height: 42px;
@@ -409,39 +439,234 @@
       margin-top: 8px;
     }
 
+    /* TABLET */
+
+    @media (max-width: 900px) {
+
+      .sidebar {
+        width: 230px;
+        padding: 14px;
+      }
+
+      .composer-area {
+        left: 230px;
+      }
+
+      .chat {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .topbar {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .message-box {
+        max-width: 82%;
+      }
+    }
+
     /* MOBILE */
 
     @media (max-width: 700px) {
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      .app {
+        width: 100%;
+        height: 100dvh;
+        min-height: 100dvh;
+      }
+
+      /* Hide desktop sidebar completely */
 
       .sidebar {
         display: none;
       }
 
-      .cards {
-        grid-template-columns: 1fr;
+      /* Main becomes the entire phone */
+
+      .main {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
       }
 
+      /* Mobile top bar */
+
+      .topbar {
+        height: 56px;
+        min-height: 56px;
+        padding: 0 15px;
+        background: #0b111a;
+      }
+
+      .model {
+        font-size: 16px;
+      }
+
+      .moon {
+        font-size: 21px;
+      }
+
+      /* Chat takes entire available width */
+
+      .chat {
+        width: 100%;
+        padding: 22px 12px 155px;
+        overflow-x: hidden;
+      }
+
+      .chat-inner {
+        width: 100%;
+        max-width: none;
+      }
+
+      /* Welcome */
+
       .welcome {
-        margin-top: 30px;
+        margin: 30px auto 25px;
+        padding: 0 5px;
+      }
+
+      .welcome-logo {
+        font-size: 44px;
+        margin-bottom: 8px;
       }
 
       .welcome h1 {
-        font-size: 29px;
+        font-size: 28px;
+        line-height: 1.2;
       }
 
-      .chat {
-        padding-left: 14px;
-        padding-right: 14px;
+      .welcome p {
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 10px auto 22px;
+        max-width: 360px;
       }
 
-      .composer-area {
-        left: 0;
-        padding-left: 14px;
-        padding-right: 14px;
+      /* Cards stack on phones */
+
+      .cards {
+        grid-template-columns: 1fr;
+        gap: 9px;
+      }
+
+      .card {
+        width: 100%;
+        padding: 15px;
+        min-height: 70px;
+      }
+
+      /* Messages */
+
+      .messages {
+        gap: 20px;
       }
 
       .message-box {
-        max-width: 90%;
+        max-width: 88%;
+        gap: 7px;
+      }
+
+      .avatar {
+        width: 30px;
+        min-width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        font-size: 13px;
+      }
+
+      .message-content {
+        padding: 9px 11px;
+        font-size: 14px;
+        line-height: 1.55;
+        border-radius: 13px;
+      }
+
+      /* Composer becomes full width */
+
+      .composer-area {
+        left: 0;
+        right: 0;
+        width: 100%;
+        padding: 10px 10px 10px;
+        padding-bottom: calc(
+          10px + env(safe-area-inset-bottom)
+        );
+        background: linear-gradient(
+          transparent,
+          #0b111a 18%
+        );
+      }
+
+      .composer {
+        width: 100%;
+        max-width: none;
+        border-radius: 15px;
+        padding: 7px;
+        gap: 5px;
+      }
+
+      textarea {
+        font-size: 16px;
+        min-height: 42px;
+        max-height: 120px;
+        padding: 10px 6px;
+      }
+
+      .send {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+      }
+
+      .note {
+        font-size: 9px;
+        margin-top: 5px;
+      }
+    }
+
+    /* VERY SMALL PHONES */
+
+    @media (max-width: 380px) {
+
+      .topbar {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .chat {
+        padding-left: 9px;
+        padding-right: 9px;
+      }
+
+      .message-box {
+        max-width: 92%;
+      }
+
+      .message-content {
+        font-size: 13.5px;
+      }
+
+      .welcome h1 {
+        font-size: 26px;
+      }
+
+      .welcome p {
+        font-size: 13px;
+      }
+
+      .composer-area {
+        padding-left: 7px;
+        padding-right: 7px;
       }
     }
   </style>
@@ -451,18 +676,27 @@
 
 <div class="app">
 
+  <!-- SIDEBAR -->
+
   <aside class="sidebar">
 
     <div class="brand">
+
       <div class="logo">☾</div>
 
       <div>
         <div class="brand-name">Luna AI</div>
-        <div class="brand-subtitle">Your AI assistant</div>
+        <div class="brand-subtitle">
+          Your AI assistant
+        </div>
       </div>
+
     </div>
 
-    <button class="new-chat" onclick="newChat()">
+    <button
+      class="new-chat"
+      onclick="newChat()"
+    >
       ＋ New chat
     </button>
 
@@ -470,18 +704,24 @@
       QUICK START
     </div>
 
-    <button class="quick-button"
-      onclick="quickMessage('Explain something complicated in a simple way.')">
+    <button
+      class="quick-button"
+      onclick="quickMessage('Explain something complicated in a simple way.')"
+    >
       ✦ Explain something
     </button>
 
-    <button class="quick-button"
-      onclick="quickMessage('Help me brainstorm an idea.')">
+    <button
+      class="quick-button"
+      onclick="quickMessage('Help me brainstorm an idea.')"
+    >
       ✧ Brainstorm an idea
     </button>
 
-    <button class="quick-button"
-      onclick="quickMessage('Help me write something.')">
+    <button
+      class="quick-button"
+      onclick="quickMessage('Help me write something.')"
+    >
       ✎ Help me write
     </button>
 
@@ -489,7 +729,10 @@
       CHATS
     </div>
 
-    <div class="saved-chats" id="savedChats"></div>
+    <div
+      class="saved-chats"
+      id="savedChats"
+    ></div>
 
     <div class="sidebar-bottom">
 
@@ -498,71 +741,126 @@
         Luna is online
       </div>
 
-      <div>Powered by Ollama Cloud</div>
+      <div>
+        Powered by Ollama Cloud
+      </div>
 
     </div>
 
   </aside>
+
+  <!-- MAIN -->
 
   <main class="main">
 
     <header class="topbar">
 
       <div class="model">
+
         <span class="moon">☾</span>
-        Luna AI
+
+        <span>Luna AI</span>
+
       </div>
 
     </header>
 
-    <section class="chat" id="chat">
+    <!-- CHAT -->
+
+    <section
+      class="chat"
+      id="chat"
+    >
 
       <div class="chat-inner">
 
-        <div class="welcome" id="welcome">
+        <div
+          class="welcome"
+          id="welcome"
+        >
 
-          <div class="welcome-logo">☾</div>
+          <div class="welcome-logo">
+            ☾
+          </div>
 
-          <h1>How can I help?</h1>
+          <h1>
+            How can I help?
+          </h1>
 
           <p>
-            Talk with Luna, ask questions, brainstorm ideas,
-            or just have a conversation.
+            Talk with Luna, ask questions,
+            brainstorm ideas, or just have a
+            conversation.
           </p>
 
           <div class="cards">
 
-            <button class="card"
-              onclick="quickMessage('What are some interesting things I could learn today?')">
-              <strong>✦ Learn something</strong>
-              <small>Explore a new topic</small>
+            <button
+              class="card"
+              onclick="quickMessage('What are some interesting things I could learn today?')"
+            >
+
+              <strong>
+                ✦ Learn something
+              </strong>
+
+              <small>
+                Explore a new topic
+              </small>
+
             </button>
 
-            <button class="card"
-              onclick="quickMessage('Help me come up with a creative idea.')">
-              <strong>✧ Get creative</strong>
-              <small>Brainstorm with Luna</small>
+            <button
+              class="card"
+              onclick="quickMessage('Help me come up with a creative idea.')"
+            >
+
+              <strong>
+                ✧ Get creative
+              </strong>
+
+              <small>
+                Brainstorm with Luna
+              </small>
+
             </button>
 
-            <button class="card"
-              onclick="quickMessage('Give me a useful tip I can use today.')">
-              <strong>⌁ Get a tip</strong>
-              <small>Something practical</small>
+            <button
+              class="card"
+              onclick="quickMessage('Give me a useful tip I can use today.')"
+            >
+
+              <strong>
+                ⌁ Get a tip
+              </strong>
+
+              <small>
+                Something practical
+              </small>
+
             </button>
 
           </div>
 
         </div>
 
-        <div class="messages" id="messages"></div>
+        <div
+          class="messages"
+          id="messages"
+        ></div>
 
       </div>
 
     </section>
 
+    <!-- COMPOSER -->
+
     <div class="composer-area">
 
-      <form class="composer" id="form">
+      <form
+        class="composer"
+        id="form"
+      >
 
         <textarea
           id="input"
@@ -576,7 +874,8 @@
           class="send"
           id="send"
           type="submit"
-          aria-label="Send message">
+          aria-label="Send message"
+        >
           ↑
         </button>
 
@@ -597,52 +896,96 @@
 const STORAGE_KEY = "luna_chats";
 const MEMORY_KEY = "luna_memory";
 
-let chats = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-let memory = JSON.parse(localStorage.getItem(MEMORY_KEY) || "[]");
+let chats =
+  JSON.parse(
+    localStorage.getItem(STORAGE_KEY) || "[]"
+  );
+
+let memory =
+  JSON.parse(
+    localStorage.getItem(MEMORY_KEY) || "[]"
+  );
 
 let currentChat = null;
 let conversation = [];
 
-const form = document.getElementById("form");
-const input = document.getElementById("input");
-const messages = document.getElementById("messages");
-const welcome = document.getElementById("welcome");
-const savedChats = document.getElementById("savedChats");
-const sendButton = document.getElementById("send");
-const chatArea = document.getElementById("chat");
+const form =
+  document.getElementById("form");
+
+const input =
+  document.getElementById("input");
+
+const messages =
+  document.getElementById("messages");
+
+const welcome =
+  document.getElementById("welcome");
+
+const savedChats =
+  document.getElementById("savedChats");
+
+const sendButton =
+  document.getElementById("send");
+
+const chatArea =
+  document.getElementById("chat");
+
 
 function saveChats() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(chats)
+  );
+
 }
 
+
 function saveMemory() {
-  localStorage.setItem(MEMORY_KEY, JSON.stringify(memory));
+
+  localStorage.setItem(
+    MEMORY_KEY,
+    JSON.stringify(memory)
+  );
+
 }
+
 
 function createChat() {
 
   const chat = {
+
     id: Date.now().toString(),
+
     title: "New chat",
+
     messages: []
+
   };
 
   chats.unshift(chat);
 
   currentChat = chat.id;
+
   conversation = [];
 
   saveChats();
+
   renderSidebar();
+
   renderMessages();
 
 }
 
+
 function getCurrentChat() {
 
-  return chats.find(chat => chat.id === currentChat);
+  return chats.find(
+    chat => chat.id === currentChat
+  );
 
 }
+
 
 function newChat() {
 
@@ -650,23 +993,33 @@ function newChat() {
 
 }
 
+
 function openChat(id) {
 
-  const chat = chats.find(chat => chat.id === id);
+  const chat =
+    chats.find(
+      chat => chat.id === id
+    );
 
   if (!chat) return;
 
   currentChat = id;
 
-  conversation = chat.messages.map(message => ({
-    role: message.role,
-    content: message.content
-  }));
+  conversation =
+    chat.messages.map(message => ({
+
+      role: message.role,
+
+      content: message.content
+
+    }));
 
   renderMessages();
+
   renderSidebar();
 
 }
+
 
 function renderSidebar() {
 
@@ -683,15 +1036,22 @@ function renderSidebar() {
 
   chats.forEach(chat => {
 
-    const button = document.createElement("button");
+    const button =
+      document.createElement("button");
 
     button.className =
       "saved-chat" +
-      (chat.id === currentChat ? " active" : "");
+      (
+        chat.id === currentChat
+          ? " active"
+          : ""
+      );
 
-    button.textContent = chat.title || "New chat";
+    button.textContent =
+      chat.title || "New chat";
 
-    button.onclick = () => openChat(chat.id);
+    button.onclick =
+      () => openChat(chat.id);
 
     savedChats.appendChild(button);
 
@@ -699,15 +1059,21 @@ function renderSidebar() {
 
 }
 
+
 function renderMessages() {
 
   messages.innerHTML = "";
 
-  const chat = getCurrentChat();
+  const chat =
+    getCurrentChat();
 
-  if (!chat || chat.messages.length === 0) {
+  if (
+    !chat ||
+    chat.messages.length === 0
+  ) {
 
     welcome.style.display = "block";
+
     return;
 
   }
@@ -727,31 +1093,47 @@ function renderMessages() {
 
 }
 
-function addMessageElement(role, text, extraClass = "") {
 
-  const message = document.createElement("div");
+function addMessageElement(
+  role,
+  text,
+  extraClass = ""
+) {
+
+  const message =
+    document.createElement("div");
 
   message.className =
     `message ${role} ${extraClass}`;
 
-  const box = document.createElement("div");
+  const box =
+    document.createElement("div");
 
-  box.className = "message-box";
+  box.className =
+    "message-box";
 
-  const avatar = document.createElement("div");
+  const avatar =
+    document.createElement("div");
 
-  avatar.className = "avatar";
+  avatar.className =
+    "avatar";
 
   avatar.textContent =
-    role === "user" ? "●" : "☾";
+    role === "user"
+      ? "●"
+      : "☾";
 
-  const content = document.createElement("div");
+  const content =
+    document.createElement("div");
 
-  content.className = "message-content";
+  content.className =
+    "message-content";
 
-  content.textContent = text;
+  content.textContent =
+    text;
 
   box.appendChild(avatar);
+
   box.appendChild(content);
 
   message.appendChild(box);
@@ -762,15 +1144,21 @@ function addMessageElement(role, text, extraClass = "") {
 
 }
 
+
 function addMessage(role, text) {
 
-  welcome.style.display = "none";
+  welcome.style.display =
+    "none";
 
-  addMessageElement(role, text);
+  addMessageElement(
+    role,
+    text
+  );
 
   scrollToBottom();
 
 }
+
 
 function scrollToBottom() {
 
@@ -783,15 +1171,23 @@ function scrollToBottom() {
 
 }
 
-function saveMessage(role, content) {
 
-  const chat = getCurrentChat();
+function saveMessage(
+  role,
+  content
+) {
+
+  const chat =
+    getCurrentChat();
 
   if (!chat) return;
 
   chat.messages.push({
+
     role,
+
     content
+
   });
 
   if (
@@ -807,99 +1203,131 @@ function saveMessage(role, content) {
   }
 
   saveChats();
+
   renderSidebar();
 
 }
 
-function updateMemory(userText, assistantText) {
 
-  /*
-    Basic local memory.
-
-    Luna remembers useful facts from the conversation
-    by keeping recent exchanges. This stays in the
-    user's browser.
-  */
+function updateMemory(
+  userText,
+  assistantText
+) {
 
   memory.push({
+
     user: userText,
+
     luna: assistantText,
+
     time: Date.now()
+
   });
 
-  // Keep the most recent 30 exchanges.
   if (memory.length > 30) {
-    memory = memory.slice(-30);
+
+    memory =
+      memory.slice(-30);
+
   }
 
   saveMemory();
 
 }
 
+
 async function sendMessage(text) {
 
-  text = text.trim();
+  text =
+    text.trim();
 
   if (!text) return;
 
   if (!currentChat) {
+
     createChat();
+
   }
 
-  const chat = getCurrentChat();
+  const chat =
+    getCurrentChat();
 
-  addMessage("user", text);
-  saveMessage("user", text);
+  addMessage(
+    "user",
+    text
+  );
+
+  saveMessage(
+    "user",
+    text
+  );
 
   conversation.push({
+
     role: "user",
+
     content: text
+
   });
 
   input.value = "";
-  input.style.height = "auto";
 
-  sendButton.disabled = true;
+  input.style.height =
+    "auto";
 
-  const thinking = addMessageElement(
-    "assistant",
-    "Thinking...",
-    "thinking"
-  );
+  sendButton.disabled =
+    true;
 
-  thinking.querySelector(".message-content")
+  const thinking =
+    addMessageElement(
+      "assistant",
+      "Thinking...",
+      "thinking"
+    );
+
+  thinking
+    .querySelector(".message-content")
     .classList.add("thinking");
 
   scrollToBottom();
 
   try {
 
-    const response = await fetch("/api/chat", {
+    const response =
+      await fetch(
+        "/api/chat",
+        {
 
-      method: "POST",
+          method: "POST",
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-      body: JSON.stringify({
+          body: JSON.stringify({
 
-        messages: conversation,
+            messages:
+              conversation,
 
-        memory: memory
+            memory:
+              memory
 
-      })
+          })
 
-    });
+        }
+      );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     thinking.remove();
 
     if (!response.ok) {
 
       throw new Error(
-        data.error || "Luna could not respond."
+        data.error ||
+        "Luna could not respond."
       );
 
     }
@@ -909,32 +1337,49 @@ async function sendMessage(text) {
       data.response ||
       "Luna didn't return a response.";
 
-    addMessage("assistant", answer);
+    addMessage(
+      "assistant",
+      answer
+    );
 
-    saveMessage("assistant", answer);
+    saveMessage(
+      "assistant",
+      answer
+    );
 
     conversation.push({
+
       role: "assistant",
+
       content: answer
+
     });
 
-    updateMemory(text, answer);
+    updateMemory(
+      text,
+      answer
+    );
 
   } catch (error) {
 
-    thinking.querySelector(".message-content").textContent =
-      "Luna couldn't respond right now.";
+    thinking
+      .querySelector(".message-content")
+      .textContent =
+        "Luna couldn't respond right now.";
 
     console.error(error);
 
   } finally {
 
-    sendButton.disabled = false;
+    sendButton.disabled =
+      false;
+
     input.focus();
 
   }
 
 }
+
 
 function quickMessage(text) {
 
@@ -942,49 +1387,76 @@ function quickMessage(text) {
 
 }
 
-form.addEventListener("submit", event => {
 
-  event.preventDefault();
-
-  sendMessage(input.value);
-
-});
-
-input.addEventListener("keydown", event => {
-
-  if (
-    event.key === "Enter" &&
-    !event.shiftKey
-  ) {
+form.addEventListener(
+  "submit",
+  event => {
 
     event.preventDefault();
 
-    form.requestSubmit();
+    sendMessage(
+      input.value
+    );
 
   }
+);
 
-});
 
-input.addEventListener("input", () => {
+input.addEventListener(
+  "keydown",
+  event => {
 
-  input.style.height = "auto";
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
 
-  input.style.height =
-    Math.min(input.scrollHeight, 160) + "px";
+      event.preventDefault();
 
-});
+      form.requestSubmit();
+
+    }
+
+  }
+);
+
+
+input.addEventListener(
+  "input",
+  () => {
+
+    input.style.height =
+      "auto";
+
+    input.style.height =
+      Math.min(
+        input.scrollHeight,
+        120
+      ) + "px";
+
+  }
+);
+
 
 function loadInitialState() {
 
   if (chats.length > 0) {
 
-    currentChat = chats[0].id;
+    currentChat =
+      chats[0].id;
 
     conversation =
-      chats[0].messages.map(message => ({
-        role: message.role,
-        content: message.content
-      }));
+      chats[0].messages.map(
+        message => ({
+
+          role:
+            message.role,
+
+          content:
+            message.content
+
+        })
+      );
 
     renderMessages();
 
@@ -995,6 +1467,7 @@ function loadInitialState() {
   }
 
 }
+
 
 loadInitialState();
 
