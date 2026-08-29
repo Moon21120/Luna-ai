@@ -1,4 +1,3 @@
-````html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -593,95 +592,8 @@
     }
 
     /* =========================================================
-       PLUS MENU / TOOLS
+       COMPOSER
        ========================================================= */
-
-    .composer-wrap {
-      position: relative;
-      width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .tools-menu {
-      position: absolute;
-      left: 0;
-      bottom: calc(100% + 10px);
-      width: 235px;
-      background: #111c29;
-      border: 1px solid #2b3a4d;
-      border-radius: 13px;
-      padding: 7px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, .45);
-      display: none;
-      z-index: 50;
-    }
-
-    .tools-menu.open {
-      display: block;
-    }
-
-    .tools-title {
-      color: #77869a;
-      font-size: 10px;
-      font-weight: bold;
-      letter-spacing: 1px;
-      padding: 8px 9px 6px;
-    }
-
-    .tool-option {
-      width: 100%;
-      border: 1px solid transparent;
-      background: transparent;
-      color: #e1e7ef;
-      border-radius: 9px;
-      padding: 10px 11px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-align: left;
-      font-size: 13px;
-      transition: .15s ease;
-    }
-
-    .tool-option:hover {
-      background: #182538;
-    }
-
-    .tool-option.active {
-      background: #1d3047;
-      border-color: #4a6688;
-      color: white;
-    }
-
-    .tool-icon {
-      width: 25px;
-      height: 25px;
-      display: grid;
-      place-items: center;
-      border-radius: 7px;
-      background: #1a2738;
-      flex-shrink: 0;
-    }
-
-    .tool-option.active .tool-icon {
-      background: #304c6d;
-    }
-
-    .tool-label {
-      flex: 1;
-    }
-
-    .tool-check {
-      opacity: 0;
-      font-size: 14px;
-    }
-
-    .tool-option.active .tool-check {
-      opacity: 1;
-    }
-
-    /* COMPOSER */
 
     .composer-area {
       position: fixed;
@@ -710,30 +622,98 @@
       padding: 9px;
     }
 
-    /* PLUS BUTTON */
+    /* =========================================================
+       + TOOLS BUTTON
+       ========================================================= */
 
-    .plus-button {
-      border: 0;
+    .tools-wrapper {
+      position: relative;
       flex-shrink: 0;
-      width: 42px;
-      height: 42px;
-      border-radius: 11px;
-      background: #182538;
-      color: #dce5f0;
-      font-size: 25px;
-      line-height: 1;
-      display: grid;
-      place-items: center;
-      transition: .18s ease;
+      align-self: flex-end;
     }
 
-    .plus-button:hover {
+    .tools-button {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 11px;
+      background: transparent;
+      color: #aebacc;
+      font-size: 25px;
+      display: grid;
+      place-items: center;
+      transition: .15s ease;
+    }
+
+    .tools-button:hover {
+      background: #1c2a3d;
+      color: white;
+    }
+
+    .tools-button.open {
+      background: #24364d;
+      color: white;
+    }
+
+    .tools-menu {
+      position: absolute;
+      left: 0;
+      bottom: 50px;
+      width: 210px;
+      background: #172335;
+      border: 1px solid #304158;
+      border-radius: 13px;
+      padding: 7px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, .5);
+      display: none;
+      z-index: 500;
+    }
+
+    .tools-menu.visible {
+      display: block;
+    }
+
+    .tool-option {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #e3e9f2;
+      border-radius: 9px;
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      font-size: 13px;
+      transition: .15s ease;
+    }
+
+    .tool-option:hover {
       background: #24364d;
     }
 
-    .plus-button.active {
-      background: #2a405b;
-      transform: rotate(45deg);
+    .tool-option.active {
+      background: #2d4664;
+      color: white;
+      box-shadow: inset 0 0 0 1px #58779e;
+    }
+
+    .tool-option-icon {
+      width: 25px;
+      text-align: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .tool-option-text {
+      flex: 1;
+    }
+
+    .tool-option-check {
+      width: 18px;
+      text-align: center;
+      color: #9fc4ff;
+      font-weight: bold;
     }
 
     textarea {
@@ -1199,22 +1179,12 @@
         );
       }
 
-      .composer-wrap {
-        max-width: none;
-      }
-
       .composer {
         width: 100%;
         max-width: none;
         border-radius: 15px;
         padding: 7px;
         gap: 5px;
-      }
-
-      .plus-button {
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
       }
 
       textarea {
@@ -1230,10 +1200,15 @@
         min-width: 40px;
       }
 
+      .tools-button {
+        width: 40px;
+        height: 40px;
+      }
+
       .tools-menu {
         left: 0;
-        bottom: calc(100% + 8px);
-        width: min(235px, calc(100vw - 20px));
+        bottom: 48px;
+        width: min(210px, calc(100vw - 30px));
       }
 
       .note {
@@ -1538,100 +1513,96 @@
 
     <div class="composer-area">
 
-      <div class="composer-wrap">
+      <form
+        class="composer"
+        id="form"
+      >
 
-        <!-- PLUS TOOLS MENU -->
+        <!-- TOOLS -->
 
-        <div
-          class="tools-menu"
-          id="toolsMenu"
-        >
-
-          <div class="tools-title">
-            LUNA TOOLS
-          </div>
+        <div class="tools-wrapper">
 
           <button
-            class="tool-option"
-            id="thinkHarderToggle"
+            class="tools-button"
+            id="toolsButton"
             type="button"
-            aria-pressed="false"
-          >
-
-            <span class="tool-icon">
-              🧠
-            </span>
-
-            <span class="tool-label">
-              Think harder
-            </span>
-
-            <span class="tool-check">
-              ✓
-            </span>
-
-          </button>
-
-          <button
-            class="tool-option"
-            id="searchWebToggle"
-            type="button"
-            aria-pressed="false"
-          >
-
-            <span class="tool-icon">
-              🌐
-            </span>
-
-            <span class="tool-label">
-              Search the web
-            </span>
-
-            <span class="tool-check">
-              ✓
-            </span>
-
-          </button>
-
-        </div>
-
-
-        <form
-          class="composer"
-          id="form"
-        >
-
-          <button
-            class="plus-button"
-            id="plusButton"
-            type="button"
-            aria-label="Open Luna tools"
+            aria-label="More options"
             aria-expanded="false"
-            title="Luna tools"
           >
             +
           </button>
 
-          <textarea
-            id="input"
-            rows="1"
-            maxlength="20000"
-            placeholder="Message Luna..."
-            autocomplete="off"
-          ></textarea>
-
-          <button
-            class="send"
-            id="send"
-            type="submit"
-            aria-label="Send message"
+          <div
+            class="tools-menu"
+            id="toolsMenu"
           >
-            ↑
-          </button>
 
-        </form>
+            <button
+              class="tool-option"
+              id="thinkHarderButton"
+              type="button"
+              aria-pressed="false"
+            >
 
-      </div>
+              <span class="tool-option-icon">
+                🧠
+              </span>
+
+              <span class="tool-option-text">
+                Think harder
+              </span>
+
+              <span
+                class="tool-option-check"
+                id="thinkHarderCheck"
+              ></span>
+
+            </button>
+
+            <button
+              class="tool-option"
+              id="webSearchButton"
+              type="button"
+              aria-pressed="false"
+            >
+
+              <span class="tool-option-icon">
+                🌐
+              </span>
+
+              <span class="tool-option-text">
+                Search the web
+              </span>
+
+              <span
+                class="tool-option-check"
+                id="webSearchCheck"
+              ></span>
+
+            </button>
+
+          </div>
+
+        </div>
+
+        <textarea
+          id="input"
+          rows="1"
+          maxlength="20000"
+          placeholder="Message Luna..."
+          autocomplete="off"
+        ></textarea>
+
+        <button
+          class="send"
+          id="send"
+          type="submit"
+          aria-label="Send message"
+        >
+          ↑
+        </button>
+
+      </form>
 
       <div
         class="voice-status"
@@ -1763,17 +1734,8 @@ let conversation = [];
    LUNA TOOLS
    ========================================================= */
 
-/*
- * These are persistent toggles.
- *
- * They remain enabled until the user taps them again.
- */
-
-let thinkHarderEnabled =
-  localStorage.getItem("luna_think_harder") === "true";
-
-let searchWebEnabled =
-  localStorage.getItem("luna_search_web") === "true";
+let thinkHarderEnabled = false;
+let webSearchEnabled = false;
 
 
 /* =========================================================
@@ -1834,153 +1796,157 @@ const moonPhase =
 const deleteAllChatsButton =
   document.getElementById("deleteAllChats");
 
-const plusButton =
-  document.getElementById("plusButton");
+const toolsButton =
+  document.getElementById("toolsButton");
 
 const toolsMenu =
   document.getElementById("toolsMenu");
 
-const thinkHarderToggle =
-  document.getElementById("thinkHarderToggle");
+const thinkHarderButton =
+  document.getElementById("thinkHarderButton");
 
-const searchWebToggle =
-  document.getElementById("searchWebToggle");
+const webSearchButton =
+  document.getElementById("webSearchButton");
+
+const thinkHarderCheck =
+  document.getElementById("thinkHarderCheck");
+
+const webSearchCheck =
+  document.getElementById("webSearchCheck");
 
 
 /* =========================================================
-   LUNA TOOLS UI
+   TOOLS MENU
    ========================================================= */
 
-function updateToolUI() {
+toolsButton.addEventListener(
+  "click",
+  event => {
 
-  thinkHarderToggle.classList.toggle(
+    event.stopPropagation();
+
+    const open =
+      toolsMenu.classList.toggle(
+        "visible"
+      );
+
+    toolsButton.classList.toggle(
+      "open",
+      open
+    );
+
+    toolsButton.setAttribute(
+      "aria-expanded",
+      String(open)
+    );
+
+  }
+);
+
+
+toolsMenu.addEventListener(
+  "click",
+  event => {
+
+    event.stopPropagation();
+
+  }
+);
+
+
+document.addEventListener(
+  "click",
+  () => {
+
+    toolsMenu.classList.remove(
+      "visible"
+    );
+
+    toolsButton.classList.remove(
+      "open"
+    );
+
+    toolsButton.setAttribute(
+      "aria-expanded",
+      "false"
+    );
+
+  }
+);
+
+
+/* =========================================================
+   THINK HARDER TOGGLE
+   ========================================================= */
+
+function updateThinkHarderButton() {
+
+  thinkHarderButton.classList.toggle(
     "active",
     thinkHarderEnabled
   );
 
-  searchWebToggle.classList.toggle(
-    "active",
-    searchWebEnabled
-  );
-
-  thinkHarderToggle.setAttribute(
+  thinkHarderButton.setAttribute(
     "aria-pressed",
     String(thinkHarderEnabled)
   );
 
-  searchWebToggle.setAttribute(
-    "aria-pressed",
-    String(searchWebEnabled)
-  );
+  thinkHarderCheck.textContent =
+    thinkHarderEnabled
+      ? "✓"
+      : "";
 
 }
 
 
-function toggleToolsMenu() {
-
-  const isOpen =
-    toolsMenu.classList.toggle(
-      "open"
-    );
-
-  plusButton.classList.toggle(
-    "active",
-    isOpen
-  );
-
-  plusButton.setAttribute(
-    "aria-expanded",
-    String(isOpen)
-  );
-
-}
-
-
-plusButton.addEventListener(
+thinkHarderButton.addEventListener(
   "click",
-  event => {
-
-    event.stopPropagation();
-
-    toggleToolsMenu();
-
-  }
-);
-
-
-thinkHarderToggle.addEventListener(
-  "click",
-  event => {
-
-    event.stopPropagation();
+  () => {
 
     thinkHarderEnabled =
       !thinkHarderEnabled;
 
-    localStorage.setItem(
-      "luna_think_harder",
-      String(thinkHarderEnabled)
-    );
-
-    updateToolUI();
+    updateThinkHarderButton();
 
   }
 );
 
 
-searchWebToggle.addEventListener(
+/* =========================================================
+   WEB SEARCH TOGGLE
+   ========================================================= */
+
+function updateWebSearchButton() {
+
+  webSearchButton.classList.toggle(
+    "active",
+    webSearchEnabled
+  );
+
+  webSearchButton.setAttribute(
+    "aria-pressed",
+    String(webSearchEnabled)
+  );
+
+  webSearchCheck.textContent =
+    webSearchEnabled
+      ? "✓"
+      : "";
+
+}
+
+
+webSearchButton.addEventListener(
   "click",
-  event => {
+  () => {
 
-    event.stopPropagation();
+    webSearchEnabled =
+      !webSearchEnabled;
 
-    searchWebEnabled =
-      !searchWebEnabled;
-
-    localStorage.setItem(
-      "luna_search_web",
-      String(searchWebEnabled)
-    );
-
-    updateToolUI();
+    updateWebSearchButton();
 
   }
 );
-
-
-/*
- * Close the tools menu when clicking elsewhere.
- */
-
-document.addEventListener(
-  "click",
-  event => {
-
-    if (
-      !toolsMenu.contains(event.target) &&
-      !plusButton.contains(event.target)
-    ) {
-
-      toolsMenu.classList.remove(
-        "open"
-      );
-
-      plusButton.classList.remove(
-        "active"
-      );
-
-      plusButton.setAttribute(
-        "aria-expanded",
-        "false"
-      );
-
-    }
-
-  }
-);
-
-
-updateToolUI();
 
 
 /* =========================================================
@@ -3933,20 +3899,6 @@ async function sendMessage(
     getCurrentChat();
 
 
-  /*
-   * Capture the tool state at the exact moment
-   * this message is sent.
-   *
-   * The toggles themselves remain persistent.
-   */
-
-  const useThinkHarder =
-    thinkHarderEnabled;
-
-  const useWebSearch =
-    searchWebEnabled;
-
-
   addMessage(
     "user",
     text
@@ -3985,33 +3937,7 @@ async function sendMessage(
       "call-status thinking";
 
     callStatus.textContent =
-      useWebSearch
-        ? "Luna is searching the web..."
-        : "Luna is thinking...";
-
-  }
-
-
-  let thinkingText =
-    "Thinking...";
-
-  if (
-    useThinkHarder &&
-    useWebSearch
-  ) {
-
-    thinkingText =
-      "Searching the web and thinking deeply...";
-
-  } else if (useThinkHarder) {
-
-    thinkingText =
-      "Thinking harder...";
-
-  } else if (useWebSearch) {
-
-    thinkingText =
-      "Searching the web...";
+      "Luna is thinking...";
 
   }
 
@@ -4019,7 +3945,11 @@ async function sendMessage(
   const thinking =
     addMessageElement(
       "assistant",
-      thinkingText,
+      thinkHarderEnabled
+        ? "Thinking deeply..."
+        : webSearchEnabled
+          ? "Searching the web..."
+          : "Thinking...",
       "thinking"
     );
 
@@ -4042,10 +3972,12 @@ async function sendMessage(
      * The backend receives these two flags.
      *
      * thinkHarder:
-     *   true = user wants deeper reasoning
+     *     Tells the backend to use Ollama's
+     *     deeper reasoning/thinking capability.
      *
-     * searchWeb:
-     *   true = user wants current web information
+     * webSearch:
+     *     Tells the backend to search the web
+     *     and provide the search context to Ollama.
      *
      * Both can be true simultaneously.
      */
@@ -4075,10 +4007,10 @@ async function sendMessage(
                 buildMemoryForLuna(),
 
               thinkHarder:
-                useThinkHarder,
+                thinkHarderEnabled,
 
-              searchWeb:
-                useWebSearch
+              webSearch:
+                webSearchEnabled
 
             })
 
@@ -4133,11 +4065,6 @@ async function sendMessage(
 
 
     if (fromVoice && voiceMode) {
-
-      /*
-       * Luna speaks first.
-       * Microphone is OFF while she talks.
-       */
 
       speakAsLuna(
         answer
@@ -4328,7 +4255,9 @@ function loadInitialState() {
   conversation =
     [];
 
-  updateToolUI();
+  updateThinkHarderButton();
+
+  updateWebSearchButton();
 
   renderSidebar();
 
@@ -4343,4 +4272,3 @@ loadInitialState();
 
 </body>
 </html>
-````
