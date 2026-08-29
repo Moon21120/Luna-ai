@@ -1776,14 +1776,11 @@ let conversation = [];
    TOOLS
    ========================================================= */
 
-const THINK_HARDER_KEY = "luna_think_harder";
-const WEB_SEARCH_KEY = "luna_web_search";
-
 let thinkHarderEnabled =
-  localStorage.getItem(THINK_HARDER_KEY) === "true";
+  localStorage.getItem("luna_think_harder") === "true";
 
 let webSearchEnabled =
-  localStorage.getItem(WEB_SEARCH_KEY) === "true";
+  localStorage.getItem("luna_web_search") === "true";
 
 
 /* =========================================================
@@ -1979,21 +1976,23 @@ function updateThinkHarderButton() {
 }
 
 
+updateThinkHarderButton();
+
+
 thinkHarderButton.addEventListener(
   "click",
-  event => {
-    event.preventDefault();
-    event.stopPropagation();
+  () => {
 
     thinkHarderEnabled =
       !thinkHarderEnabled;
 
     localStorage.setItem(
-      THINK_HARDER_KEY,
+      "luna_think_harder",
       String(thinkHarderEnabled)
     );
 
     updateThinkHarderButton();
+
   }
 );
 
@@ -2024,19 +2023,13 @@ function updateWebSearchButton() {
 
 webSearchButton.addEventListener(
   "click",
-  event => {
-    event.preventDefault();
-    event.stopPropagation();
+  () => {
 
     webSearchEnabled =
       !webSearchEnabled;
 
-    localStorage.setItem(
-      WEB_SEARCH_KEY,
-      String(webSearchEnabled)
-    );
-
     updateWebSearchButton();
+
   }
 );
 
@@ -4124,19 +4117,18 @@ async function sendMessage(
 
   try {
 
-    /*
-     * Read the tool state directly from the buttons at send time.
-     * This prevents stale JavaScript state from reaching the server.
-     */
-    const requestThinkHarder =
-      thinkHarderButton.getAttribute("aria-pressed") === "true";
+    console.log("LUNA REQUEST TO SERVER:", {
+      thinkHarder:
+        thinkHarderButton.getAttribute("aria-pressed") === "true",
+      webSearch:
+        webSearchButton.getAttribute("aria-pressed") === "true"
+    });
 
-    const requestWebSearch =
-      requestWebSearch;
-
-    console.log("LUNA TOOL STATE:", {
-      thinkHarder: requestThinkHarder,
-      webSearch: requestWebSearch
+    console.log("LUNA REQUEST TO SERVER:", {
+      thinkHarder:
+        thinkHarderButton.getAttribute("aria-pressed") === "true",
+      webSearch:
+        webSearchButton.getAttribute("aria-pressed") === "true"
     });
 
     const response =
@@ -4163,8 +4155,13 @@ async function sendMessage(
               memory:
                 buildMemoryForLuna(),
 
+              /*
+               * Read the buttons at the exact moment the request
+               * is created. This guarantees the server receives
+               * the state currently shown in the UI.
+               */
               thinkHarder:
-                requestThinkHarder,
+                thinkHarderButton.getAttribute("aria-pressed") === "true",
 
               webSearch:
                 webSearchButton.getAttribute("aria-pressed") === "true"
