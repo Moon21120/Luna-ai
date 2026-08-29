@@ -56,6 +56,7 @@
       padding: 18px;
       display: flex;
       flex-direction: column;
+      z-index: 1000;
     }
 
     .brand {
@@ -182,6 +183,29 @@
       background: #65d391;
     }
 
+    /* MOBILE MENU */
+
+    .mobile-menu {
+      display: none;
+      border: 0;
+      background: transparent;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      font-size: 23px;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .mobile-menu:hover {
+      background: #182538;
+    }
+
+    .sidebar-overlay {
+      display: none;
+    }
+
     /* MAIN */
 
     .main {
@@ -298,11 +322,6 @@
       display: flex;
       width: 100%;
     }
-
-    /*
-      User messages = left
-      Luna messages = right
-    */
 
     .message.user {
       justify-content: flex-start;
@@ -484,13 +503,54 @@
         min-height: 100dvh;
       }
 
-      /* Hide desktop sidebar completely */
+      /* MOBILE SIDEBAR */
 
       .sidebar {
-        display: none;
+        position: fixed;
+        z-index: 1001;
+        left: 0;
+        top: 0;
+        bottom: 0;
+
+        width: min(300px, 85vw);
+
+        display: flex;
+
+        transform: translateX(-105%);
+        transition: transform 0.25s ease;
+
+        box-shadow: 12px 0 35px rgba(0, 0, 0, 0.45);
+
+        overflow-y: auto;
       }
 
-      /* Main becomes the entire phone */
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+
+      /* DARK BACKDROP */
+
+      .sidebar-overlay {
+        position: fixed;
+        z-index: 1000;
+        inset: 0;
+
+        display: block;
+
+        background: rgba(0, 0, 0, 0.55);
+
+        opacity: 0;
+        pointer-events: none;
+
+        transition: opacity 0.25s ease;
+      }
+
+      .sidebar-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* MAIN */
 
       .main {
         width: 100%;
@@ -498,13 +558,16 @@
         min-width: 0;
       }
 
-      /* Mobile top bar */
+      /* TOP BAR */
 
       .topbar {
         height: 56px;
         min-height: 56px;
-        padding: 0 15px;
-        background: #0b111a;
+        padding: 0 12px;
+      }
+
+      .mobile-menu {
+        display: grid;
       }
 
       .model {
@@ -515,7 +578,7 @@
         font-size: 21px;
       }
 
-      /* Chat takes entire available width */
+      /* CHAT */
 
       .chat {
         width: 100%;
@@ -528,7 +591,7 @@
         max-width: none;
       }
 
-      /* Welcome */
+      /* WELCOME */
 
       .welcome {
         margin: 30px auto 25px;
@@ -552,7 +615,7 @@
         max-width: 360px;
       }
 
-      /* Cards stack on phones */
+      /* CARDS */
 
       .cards {
         grid-template-columns: 1fr;
@@ -565,7 +628,7 @@
         min-height: 70px;
       }
 
-      /* Messages */
+      /* MESSAGES */
 
       .messages {
         gap: 20px;
@@ -591,7 +654,7 @@
         border-radius: 13px;
       }
 
-      /* Composer becomes full width */
+      /* COMPOSER */
 
       .composer-area {
         left: 0;
@@ -638,9 +701,13 @@
 
     @media (max-width: 380px) {
 
+      .sidebar {
+        width: 86vw;
+      }
+
       .topbar {
-        padding-left: 12px;
-        padding-right: 12px;
+        padding-left: 8px;
+        padding-right: 8px;
       }
 
       .chat {
@@ -676,16 +743,29 @@
 
 <div class="app">
 
+  <!-- MOBILE SIDEBAR BACKDROP -->
+
+  <div
+    class="sidebar-overlay"
+    id="sidebarOverlay"
+  ></div>
+
   <!-- SIDEBAR -->
 
-  <aside class="sidebar">
+  <aside
+    class="sidebar"
+    id="sidebar"
+  >
 
     <div class="brand">
 
       <div class="logo">☾</div>
 
       <div>
-        <div class="brand-name">Luna AI</div>
+        <div class="brand-name">
+          Luna AI
+        </div>
+
         <div class="brand-subtitle">
           Your AI assistant
         </div>
@@ -755,11 +835,24 @@
 
     <header class="topbar">
 
+      <button
+        class="mobile-menu"
+        id="mobileMenu"
+        aria-label="Open menu"
+        type="button"
+      >
+        ☰
+      </button>
+
       <div class="model">
 
-        <span class="moon">☾</span>
+        <span class="moon">
+          ☾
+        </span>
 
-        <span>Luna AI</span>
+        <span>
+          Luna AI
+        </span>
 
       </div>
 
@@ -799,7 +892,6 @@
               class="card"
               onclick="quickMessage('What are some interesting things I could learn today?')"
             >
-
               <strong>
                 ✦ Learn something
               </strong>
@@ -807,14 +899,12 @@
               <small>
                 Explore a new topic
               </small>
-
             </button>
 
             <button
               class="card"
               onclick="quickMessage('Help me come up with a creative idea.')"
             >
-
               <strong>
                 ✧ Get creative
               </strong>
@@ -822,14 +912,12 @@
               <small>
                 Brainstorm with Luna
               </small>
-
             </button>
 
             <button
               class="card"
               onclick="quickMessage('Give me a useful tip I can use today.')"
             >
-
               <strong>
                 ⌁ Get a tip
               </strong>
@@ -837,7 +925,6 @@
               <small>
                 Something practical
               </small>
-
             </button>
 
           </div>
@@ -930,6 +1017,73 @@ const sendButton =
 const chatArea =
   document.getElementById("chat");
 
+const mobileMenu =
+  document.getElementById("mobileMenu");
+
+const sidebar =
+  document.getElementById("sidebar");
+
+const sidebarOverlay =
+  document.getElementById("sidebarOverlay");
+
+
+/* MOBILE SIDEBAR */
+
+function openMobileSidebar() {
+
+  sidebar.classList.add(
+    "mobile-open"
+  );
+
+  sidebarOverlay.classList.add(
+    "visible"
+  );
+
+}
+
+
+function closeMobileSidebar() {
+
+  sidebar.classList.remove(
+    "mobile-open"
+  );
+
+  sidebarOverlay.classList.remove(
+    "visible"
+  );
+
+}
+
+
+mobileMenu.addEventListener(
+  "click",
+  () => {
+
+    if (
+      sidebar.classList.contains(
+        "mobile-open"
+      )
+    ) {
+
+      closeMobileSidebar();
+
+    } else {
+
+      openMobileSidebar();
+
+    }
+
+  }
+);
+
+
+sidebarOverlay.addEventListener(
+  "click",
+  closeMobileSidebar
+);
+
+
+/* STORAGE */
 
 function saveChats() {
 
@@ -951,21 +1105,27 @@ function saveMemory() {
 }
 
 
+/* CHATS */
+
 function createChat() {
 
   const chat = {
 
-    id: Date.now().toString(),
+    id:
+      Date.now().toString(),
 
-    title: "New chat",
+    title:
+      "New chat",
 
-    messages: []
+    messages:
+      []
 
   };
 
   chats.unshift(chat);
 
-  currentChat = chat.id;
+  currentChat =
+    chat.id;
 
   conversation = [];
 
@@ -975,13 +1135,16 @@ function createChat() {
 
   renderMessages();
 
+  closeMobileSidebar();
+
 }
 
 
 function getCurrentChat() {
 
   return chats.find(
-    chat => chat.id === currentChat
+    chat =>
+      chat.id === currentChat
   );
 
 }
@@ -998,28 +1161,38 @@ function openChat(id) {
 
   const chat =
     chats.find(
-      chat => chat.id === id
+      chat =>
+        chat.id === id
     );
 
   if (!chat) return;
 
-  currentChat = id;
+  currentChat =
+    id;
 
   conversation =
-    chat.messages.map(message => ({
+    chat.messages.map(
+      message => ({
 
-      role: message.role,
+        role:
+          message.role,
 
-      content: message.content
+        content:
+          message.content
 
-    }));
+      })
+    );
 
   renderMessages();
 
   renderSidebar();
 
+  closeMobileSidebar();
+
 }
 
+
+/* SIDEBAR */
 
 function renderSidebar() {
 
@@ -1034,31 +1207,41 @@ function renderSidebar() {
 
   }
 
-  chats.forEach(chat => {
+  chats.forEach(
+    chat => {
 
-    const button =
-      document.createElement("button");
+      const button =
+        document.createElement(
+          "button"
+        );
 
-    button.className =
-      "saved-chat" +
-      (
-        chat.id === currentChat
-          ? " active"
-          : ""
+      button.className =
+        "saved-chat" +
+        (
+          chat.id === currentChat
+            ? " active"
+            : ""
+        );
+
+      button.textContent =
+        chat.title ||
+        "New chat";
+
+      button.onclick =
+        () =>
+          openChat(chat.id);
+
+      savedChats.appendChild(
+        button
       );
 
-    button.textContent =
-      chat.title || "New chat";
-
-    button.onclick =
-      () => openChat(chat.id);
-
-    savedChats.appendChild(button);
-
-  });
+    }
+  );
 
 }
 
+
+/* MESSAGES */
 
 function renderMessages() {
 
@@ -1072,22 +1255,26 @@ function renderMessages() {
     chat.messages.length === 0
   ) {
 
-    welcome.style.display = "block";
+    welcome.style.display =
+      "block";
 
     return;
 
   }
 
-  welcome.style.display = "none";
+  welcome.style.display =
+    "none";
 
-  chat.messages.forEach(message => {
+  chat.messages.forEach(
+    message => {
 
-    addMessageElement(
-      message.role,
-      message.content
-    );
+      addMessageElement(
+        message.role,
+        message.content
+      );
 
-  });
+    }
+  );
 
   scrollToBottom();
 
@@ -1101,19 +1288,25 @@ function addMessageElement(
 ) {
 
   const message =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   message.className =
     `message ${role} ${extraClass}`;
 
   const box =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   box.className =
     "message-box";
 
   const avatar =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   avatar.className =
     "avatar";
@@ -1124,7 +1317,9 @@ function addMessageElement(
       : "☾";
 
   const content =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   content.className =
     "message-content";
@@ -1132,20 +1327,31 @@ function addMessageElement(
   content.textContent =
     text;
 
-  box.appendChild(avatar);
+  box.appendChild(
+    avatar
+  );
 
-  box.appendChild(content);
+  box.appendChild(
+    content
+  );
 
-  message.appendChild(box);
+  message.appendChild(
+    box
+  );
 
-  messages.appendChild(message);
+  messages.appendChild(
+    message
+  );
 
   return message;
 
 }
 
 
-function addMessage(role, text) {
+function addMessage(
+  role,
+  text
+) {
 
   welcome.style.display =
     "none";
@@ -1162,15 +1368,20 @@ function addMessage(role, text) {
 
 function scrollToBottom() {
 
-  setTimeout(() => {
+  setTimeout(
+    () => {
 
-    chatArea.scrollTop =
-      chatArea.scrollHeight;
+      chatArea.scrollTop =
+        chatArea.scrollHeight;
 
-  }, 30);
+    },
+    30
+  );
 
 }
 
+
+/* SAVE MESSAGES */
 
 function saveMessage(
   role,
@@ -1184,9 +1395,11 @@ function saveMessage(
 
   chat.messages.push({
 
-    role,
+    role:
+      role,
 
-    content
+    content:
+      content
 
   });
 
@@ -1209,6 +1422,8 @@ function saveMessage(
 }
 
 
+/* MEMORY */
+
 function updateMemory(
   userText,
   assistantText
@@ -1216,11 +1431,14 @@ function updateMemory(
 
   memory.push({
 
-    user: userText,
+    user:
+      userText,
 
-    luna: assistantText,
+    luna:
+      assistantText,
 
-    time: Date.now()
+    time:
+      Date.now()
 
   });
 
@@ -1235,6 +1453,8 @@ function updateMemory(
 
 }
 
+
+/* SEND MESSAGE */
 
 async function sendMessage(text) {
 
@@ -1264,13 +1484,16 @@ async function sendMessage(text) {
 
   conversation.push({
 
-    role: "user",
+    role:
+      "user",
 
-    content: text
+    content:
+      text
 
   });
 
-  input.value = "";
+  input.value =
+    "";
 
   input.style.height =
     "auto";
@@ -1286,8 +1509,12 @@ async function sendMessage(text) {
     );
 
   thinking
-    .querySelector(".message-content")
-    .classList.add("thinking");
+    .querySelector(
+      ".message-content"
+    )
+    .classList.add(
+      "thinking"
+    );
 
   scrollToBottom();
 
@@ -1298,22 +1525,26 @@ async function sendMessage(text) {
         "/api/chat",
         {
 
-          method: "POST",
+          method:
+            "POST",
 
           headers: {
+
             "Content-Type":
               "application/json"
+
           },
 
-          body: JSON.stringify({
+          body:
+            JSON.stringify({
 
-            messages:
-              conversation,
+              messages:
+                conversation,
 
-            memory:
-              memory
+              memory:
+                memory
 
-          })
+            })
 
         }
       );
@@ -1349,9 +1580,11 @@ async function sendMessage(text) {
 
     conversation.push({
 
-      role: "assistant",
+      role:
+        "assistant",
 
-      content: answer
+      content:
+        answer
 
     });
 
@@ -1363,11 +1596,15 @@ async function sendMessage(text) {
   } catch (error) {
 
     thinking
-      .querySelector(".message-content")
+      .querySelector(
+        ".message-content"
+      )
       .textContent =
         "Luna couldn't respond right now.";
 
-    console.error(error);
+    console.error(
+      error
+    );
 
   } finally {
 
@@ -1381,12 +1618,18 @@ async function sendMessage(text) {
 }
 
 
+/* QUICK MESSAGE */
+
 function quickMessage(text) {
 
-  sendMessage(text);
+  sendMessage(
+    text
+  );
 
 }
 
+
+/* FORM */
 
 form.addEventListener(
   "submit",
@@ -1401,6 +1644,8 @@ form.addEventListener(
   }
 );
 
+
+/* ENTER TO SEND */
 
 input.addEventListener(
   "keydown",
@@ -1421,6 +1666,8 @@ input.addEventListener(
 );
 
 
+/* AUTO RESIZE */
+
 input.addEventListener(
   "input",
   () => {
@@ -1437,6 +1684,8 @@ input.addEventListener(
   }
 );
 
+
+/* INITIAL STATE */
 
 function loadInitialState() {
 
