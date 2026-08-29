@@ -87,7 +87,7 @@ async function searchWeb(query, apiKey) {
       method: "POST",
 
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        "Authorization": "Bearer " + apiKey,
         "Content-Type": "application/json"
       },
 
@@ -116,18 +116,22 @@ async function searchWeb(query, apiKey) {
 
     throw new Error(
       data.error ||
-      `Web search returned HTTP ${response.status}.`
+      "Web search returned HTTP " +
+      response.status +
+      "."
     );
   }
 
   if (!Array.isArray(data.results)) {
     throw new Error(
-      "Ollama web search returned no results array."
+      "Ollama web search returned no results."
     );
   }
 
   console.log(
-    `WEB SEARCH SUCCESS: ${data.results.length} results`
+    "WEB SEARCH SUCCESS:",
+    data.results.length,
+    "results"
   );
 
   return data;
@@ -143,17 +147,17 @@ function formatSearchResults(searchData) {
     return [
       "",
       "WEB SEARCH STATUS: SEARCH COMPLETED BUT NO RESULTS WERE FOUND.",
-      "Do not pretend that you found information on the web.",
+      "Do not pretend that web results were found.",
       ""
     ].join("\n");
   }
 
   const formatted = searchData.results
     .slice(0, 8)
-    .map((result, index) => {
+    .map(function(result, index) {
       const title =
         result.title ||
-        `Result ${index + 1}`;
+        "Result " + (index + 1);
 
       const url =
         result.url ||
@@ -166,10 +170,10 @@ function formatSearchResults(searchData) {
         "";
 
       return [
-        `SEARCH RESULT ${index + 1}`,
-        `Title: ${title}`,
-        `URL: ${url}`,
-        `Information: ${content}`
+        "SEARCH RESULT " + (index + 1),
+        "Title: " + title,
+        "URL: " + url,
+        "Information: " + content
       ].join("\n");
     })
     .join("\n\n");
@@ -180,12 +184,12 @@ function formatSearchResults(searchData) {
     formatted,
     "================ END WEB SEARCH RESULTS ================",
     "",
-    "IMPORTANT WEB SEARCH INSTRUCTIONS:",
-    "Web search WAS performed for this request.",
-    "Use the web search results above when answering the user.",
-    "Use the current information from these results instead of relying only on your old knowledge.",
+    "WEB SEARCH INSTRUCTIONS:",
+    "A web search was performed for this request.",
+    "Use the search results above when answering the user.",
+    "Prefer current information from these results when appropriate.",
     "If the results do not contain enough information, say so.",
-    "Do not claim that you searched the web unless the search results above are present.",
+    "Do not invent information that is not supported by the results.",
     ""
   ].join("\n");
 }
@@ -216,17 +220,13 @@ app.post("/api/chat", async (req, res) => {
     const thinkHarder =
       req.body.thinkHarder === true ||
       req.body.thinkHarder === "true" ||
-      req.body.thinkHarder === 1;
+      req.body.thinkHarder === 1 ||
+      req.body.thinkHarder === "1";
 
     /*
-      IMPORTANT FIX:
-
-      Accept Web Search whether the frontend sends:
-      true
-      "true"
-      1
-      "1"
-    */
+     * WEB SEARCH IS ONLY ENABLED WHEN THE FRONTEND
+     * EXPLICITLY SENDS THE TOGGLE AS ON.
+     */
 
     const searchWebEnabled =
       req.body.searchWeb === true ||
@@ -295,10 +295,21 @@ app.post("/api/chat", async (req, res) => {
 
     let webContext = "";
 
-    console.log("WEB SEARCH TOGGLE:", searchWebEnabled);
-    console.log("USER QUERY:", userQuery);
+    console.log(
+      "WEB SEARCH TOGGLE:",
+      searchWebEnabled
+    );
 
-    if (searchWebEnabled && userQuery.trim()) {
+    /*
+     * THIS IS THE ONLY PLACE WEB SEARCH IS CALLED.
+     *
+     * If the toggle is OFF, searchWeb() is NEVER called.
+     */
+
+    if (
+      searchWebEnabled === true &&
+      userQuery.trim().length > 0
+    ) {
       try {
         const searchData = await searchWeb(
           userQuery.trim(),
@@ -307,6 +318,10 @@ app.post("/api/chat", async (req, res) => {
 
         webContext =
           formatSearchResults(searchData);
+
+        console.log(
+          "WEB SEARCH FINISHED SUCCESSFULLY"
+        );
 
       } catch (searchError) {
         console.error(
@@ -317,17 +332,15 @@ app.post("/api/chat", async (req, res) => {
         webContext = [
           "",
           "WEB SEARCH STATUS: SEARCH FAILED.",
-          `Error: ${searchError.message}`,
           "Do not pretend that search results were found.",
           ""
         ].join("\n");
       }
-    } else if (searchWebEnabled) {
-      webContext = [
-        "",
-        "WEB SEARCH STATUS: SEARCH WAS ENABLED BUT THE USER MESSAGE WAS EMPTY.",
-        ""
-      ].join("\n");
+
+    } else {
+      console.log(
+        "WEB SEARCH SKIPPED — TOGGLE IS OFF."
+      );
     }
 
 
@@ -352,8 +365,7 @@ app.post("/api/chat", async (req, res) => {
 
     console.log("REQUEST OPTIONS:", {
       thinkHarder: thinkHarder,
-      searchWeb: searchWebEnabled,
-      query: userQuery
+      searchWeb: searchWebEnabled
     });
 
 
@@ -367,7 +379,7 @@ app.post("/api/chat", async (req, res) => {
         method: "POST",
 
         headers: {
-          "Authorization": `Bearer ${apiKey}`,
+          "Authorization": "Bearer " + apiKey,
           "Content-Type": "application/json"
         },
 
@@ -396,6 +408,10 @@ app.post("/api/chat", async (req, res) => {
     );
 
 
+    /* =========================
+       OLLAMA RESPONSE
+    ========================= */
+
     const rawText = await response.text();
 
     let data;
@@ -412,17 +428,24 @@ app.post("/api/chat", async (req, res) => {
 
 
     if (!response.ok) {
-      console.error("OLLAMA ERROR:", data);
+      console.error(
+        "OLLAMA ERROR:",
+        data
+      );
 
       return res.status(response.status).json({
         error:
           data.error ||
-          `Ollama returned HTTP ${response.status}.`
+          "Ollama returned HTTP " +
+          response.status +
+          "."
       });
     }
 
 
-    console.log("OLLAMA RESPONSE SUCCESS");
+    console.log(
+      "OLLAMA RESPONSE SUCCESS"
+    );
 
     return res.json(data);
 
