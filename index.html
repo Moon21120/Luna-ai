@@ -1,14 +1,57 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+
+>
 
   <title>Luna AI</title>
+
+  <!-- =========================================================
+       MATHJAX
+       ========================================================= -->
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [
+          ["\\(", "\\)"],
+          ["$", "$"]
+        ],
+        displayMath: [
+          ["\\[", "\\]"],
+          ["$$", "$$"]
+        ],
+        processEscapes: true,
+        processEnvironments: true
+      },
+
+      options: {
+        skipHtmlTags: [
+          "script",
+          "noscript",
+          "style",
+          "textarea",
+          "pre",
+          "code"
+        ]
+      },
+
+      svg: {
+        fontCache: "global"
+      }
+    };
+  </script>
+
+  <script
+    async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+  ></script>
 
   <style>
     * {
@@ -459,6 +502,7 @@
       white-space: pre-wrap;
       overflow-wrap: anywhere;
       word-break: break-word;
+      min-width: 0;
     }
 
     .user .message-content {
@@ -530,6 +574,27 @@
     .message-content a {
       color: #8db9ff;
       text-decoration: underline;
+    }
+
+    /* =========================================================
+       MATHJAX STYLING
+       ========================================================= */
+
+    .message-content mjx-container {
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 2px 0;
+    }
+
+    .message-content mjx-container[display="true"] {
+      margin: 14px 0 !important;
+      padding: 5px 0;
+    }
+
+    .message-content mjx-container svg {
+      max-width: 100%;
+      height: auto;
     }
 
     .thinking {
@@ -885,6 +950,7 @@
       }
     }
   </style>
+
 </head>
 
 <body>
@@ -901,233 +967,240 @@
     id="sidebar"
   >
 
-    <div class="brand">
+```
+<div class="brand">
 
-      <div class="logo">☾</div>
+  <div class="logo">☾</div>
 
-      <div>
-        <div class="brand-name">
-          Luna AI
-        </div>
-
-        <div class="brand-subtitle">
-          Your AI assistant
-        </div>
-      </div>
-
+  <div>
+    <div class="brand-name">
+      Luna AI
     </div>
 
-    <button
-      class="new-chat"
-      onclick="newChat()"
-    >
-      ＋ New chat
-    </button>
-
-    <div class="section-title">
-      QUICK START
+    <div class="brand-subtitle">
+      Your AI assistant
     </div>
+  </div>
 
-    <button
-      class="quick-button"
-      onclick="quickMessage('Explain something complicated in a simple way.')"
-    >
-      ✦ Explain something
-    </button>
+</div>
 
-    <button
-      class="quick-button"
-      onclick="quickMessage('Help me brainstorm an idea.')"
-    >
-      ✧ Brainstorm an idea
-    </button>
+<button
+  class="new-chat"
+  onclick="newChat()"
+>
+  ＋ New chat
+</button>
 
-    <button
-      class="quick-button"
-      onclick="quickMessage('Help me write something.')"
-    >
-      ✎ Help me write
-    </button>
+<div class="section-title">
+  QUICK START
+</div>
 
-    <div class="section-title saved-title">
-      CHATS
-    </div>
+<button
+  class="quick-button"
+  onclick="quickMessage('Explain something complicated in a simple way.')"
+>
+  ✦ Explain something
+</button>
 
-    <div
-      class="saved-chats"
-      id="savedChats"
-    ></div>
+<button
+  class="quick-button"
+  onclick="quickMessage('Help me brainstorm an idea.')"
+>
+  ✧ Brainstorm an idea
+</button>
 
-    <div class="sidebar-bottom">
+<button
+  class="quick-button"
+  onclick="quickMessage('Help me write something.')"
+>
+  ✎ Help me write
+</button>
 
-      <div class="online">
-        <span class="dot"></span>
-        Luna is online
-      </div>
+<div class="section-title saved-title">
+  CHATS
+</div>
 
-      <div>
-        Powered by Ollama Cloud
-      </div>
+<div
+  class="saved-chats"
+  id="savedChats"
+></div>
 
-    </div>
+<div class="sidebar-bottom">
+
+  <div class="online">
+    <span class="dot"></span>
+    Luna is online
+  </div>
+
+  <div>
+    Powered by Ollama Cloud
+  </div>
+
+</div>
+```
 
   </aside>
 
   <main class="main">
 
-    <header class="topbar">
+```
+<header class="topbar">
 
-      <button
-        class="mobile-menu"
-        id="mobileMenu"
-        aria-label="Open menu"
-        type="button"
-      >
-        ☰
-      </button>
+  <button
+    class="mobile-menu"
+    id="mobileMenu"
+    aria-label="Open menu"
+    type="button"
+  >
+    ☰
+  </button>
 
-      <div class="model">
+  <div class="model">
 
-        <span class="moon">
-          ☾
-        </span>
+    <span class="moon">
+      ☾
+    </span>
 
-        <span>
-          Luna AI
-        </span>
+    <span>
+      Luna AI
+    </span>
 
-      </div>
+  </div>
 
-      <button
-        class="voice-call"
-        id="voiceCall"
-        type="button"
-        aria-label="Start voice call"
-      >
-        <span>🎙</span>
-        <span>Voice Call</span>
-      </button>
+  <button
+    class="voice-call"
+    id="voiceCall"
+    type="button"
+    aria-label="Start voice call"
+  >
+    <span>🎙</span>
+    <span>Voice Call</span>
+  </button>
 
-    </header>
+</header>
 
-    <section
-      class="chat"
-      id="chat"
+<section
+  class="chat"
+  id="chat"
+>
+
+  <div class="chat-inner">
+
+    <div
+      class="welcome"
+      id="welcome"
     >
 
-      <div class="chat-inner">
-
-        <div
-          class="welcome"
-          id="welcome"
-        >
-
-          <div class="welcome-logo">
-            ☾
-          </div>
-
-          <h1>
-            How can I help?
-          </h1>
-
-          <p>
-            Talk with Luna, ask questions,
-            brainstorm ideas, or just have a
-            conversation.
-          </p>
-
-          <div class="cards">
-
-            <button
-              class="card"
-              onclick="quickMessage('What are some interesting things I could learn today?')"
-            >
-              <strong>
-                ✦ Learn something
-              </strong>
-
-              <small>
-                Explore a new topic
-              </small>
-            </button>
-
-            <button
-              class="card"
-              onclick="quickMessage('Help me come up with a creative idea.')"
-            >
-              <strong>
-                ✧ Get creative
-              </strong>
-
-              <small>
-                Brainstorm with Luna
-              </small>
-            </button>
-
-            <button
-              class="card"
-              onclick="quickMessage('Give me a useful tip I can use today.')"
-            >
-              <strong>
-                ⌁ Get a tip
-              </strong>
-
-              <small>
-                Something practical
-              </small>
-            </button>
-
-          </div>
-
-        </div>
-
-        <div
-          class="messages"
-          id="messages"
-        ></div>
-
+      <div class="welcome-logo">
+        ☾
       </div>
 
-    </section>
+      <h1>
+        How can I help?
+      </h1>
 
-    <div class="composer-area">
+      <p>
+        Talk with Luna, ask questions,
+        brainstorm ideas, or just have a
+        conversation.
+      </p>
 
-      <form
-        class="composer"
-        id="form"
-      >
-
-        <textarea
-          id="input"
-          rows="1"
-          maxlength="20000"
-          placeholder="Message Luna..."
-          autocomplete="off"
-        ></textarea>
+      <div class="cards">
 
         <button
-          class="send"
-          id="send"
-          type="submit"
-          aria-label="Send message"
+          class="card"
+          onclick="quickMessage('What are some interesting things I could learn today?')"
         >
-          ↑
+          <strong>
+            ✦ Learn something
+          </strong>
+
+          <small>
+            Explore a new topic
+          </small>
+
         </button>
 
-      </form>
+        <button
+          class="card"
+          onclick="quickMessage('Help me come up with a creative idea.')"
+        >
+          <strong>
+            ✧ Get creative
+          </strong>
 
-      <div
-        class="voice-status"
-        id="voiceStatus"
-      >
-        🎙 Listening...
-      </div>
+          <small>
+            Brainstorm with Luna
+          </small>
 
-      <div class="note">
-        Luna can make mistakes. Check important information.
+        </button>
+
+        <button
+          class="card"
+          onclick="quickMessage('Give me a useful tip I can use today.')"
+        >
+          <strong>
+            ⌁ Get a tip
+          </strong>
+
+          <small>
+            Something practical
+          </small>
+
+        </button>
+
       </div>
 
     </div>
+
+    <div
+      class="messages"
+      id="messages"
+    ></div>
+
+  </div>
+
+</section>
+
+<div class="composer-area">
+
+  <form
+    class="composer"
+    id="form"
+  >
+
+    <textarea
+      id="input"
+      rows="1"
+      maxlength="20000"
+      placeholder="Message Luna..."
+      autocomplete="off"
+    ></textarea>
+
+    <button
+      class="send"
+      id="send"
+      type="submit"
+      aria-label="Send message"
+    >
+      ↑
+    </button>
+
+  </form>
+
+  <div
+    class="voice-status"
+    id="voiceStatus"
+  >
+    🎙 Listening...
+  </div>
+
+  <div class="note">
+    Luna can make mistakes. Check important information.
+  </div>
+
+</div>
+```
 
   </main>
 
@@ -1135,7 +1208,9 @@
 
 <script>
 
-/* STORAGE */
+/* =========================================================
+   STORAGE
+   ========================================================= */
 
 const STORAGE_KEY = "luna_chats";
 const MEMORY_KEY = "luna_memory";
@@ -1154,7 +1229,9 @@ let currentChat = null;
 let conversation = [];
 
 
-/* ELEMENTS */
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
 
 const form =
   document.getElementById("form");
@@ -1193,7 +1270,9 @@ const voiceStatus =
   document.getElementById("voiceStatus");
 
 
-/* MOBILE SIDEBAR */
+/* =========================================================
+   MOBILE SIDEBAR
+   ========================================================= */
 
 function openMobileSidebar() {
 
@@ -1249,7 +1328,9 @@ sidebarOverlay.addEventListener(
 );
 
 
-/* STORAGE */
+/* =========================================================
+   STORAGE
+   ========================================================= */
 
 function saveChats() {
 
@@ -1271,7 +1352,9 @@ function saveMemory() {
 }
 
 
-/* CHAT CREATION */
+/* =========================================================
+   CHAT CREATION
+   ========================================================= */
 
 function createChat() {
 
@@ -1324,7 +1407,9 @@ function getCurrentChat() {
 }
 
 
-/* OPEN OLD CHAT */
+/* =========================================================
+   OPEN OLD CHAT
+   ========================================================= */
 
 function openChat(id) {
 
@@ -1361,7 +1446,9 @@ function openChat(id) {
 }
 
 
-/* DELETE CHAT */
+/* =========================================================
+   DELETE CHAT
+   ========================================================= */
 
 function deleteChat(id) {
 
@@ -1387,7 +1474,9 @@ function deleteChat(id) {
 }
 
 
-/* SIDEBAR */
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
 
 function renderSidebar() {
 
@@ -1487,7 +1576,9 @@ function renderSidebar() {
 }
 
 
-/* CHAT OPTIONS MENU */
+/* =========================================================
+   CHAT OPTIONS MENU
+   ========================================================= */
 
 function showChatMenu(
   row,
@@ -1583,24 +1674,39 @@ function showChatMenu(
 
 
 /* =========================================================
-   SAFE MARKDOWN FORMATTER
+   SAFE MARKDOWN + LATEX FORMATTER
    ========================================================= */
 
 /*
-  Luna can now use basic Markdown:
+  Supported Markdown:
 
   **bold**
   *italic*
   ~~strikethrough~~
   `inline code`
-  ```code blocks```
+  ```code```
 
-  Mathematical symbols are preserved because
-  the original text is never stripped or normalized.
+  Supported math:
 
-  HTML is escaped first, so Luna's responses
-  cannot inject arbitrary HTML into the page.
+  \[ display math \]
+  \( inline math \)
+  $$ display math $$
+  $ inline math $
+
+  IMPORTANT:
+
+  Some AI APIs return LaTeX with doubled
+  backslashes, for example:
+
+  \\Gamma
+  \\int
+  \\[
+  \\]
+
+  This formatter automatically normalizes
+  those into valid LaTeX before MathJax sees them.
 */
+
 
 function escapeHTML(text) {
 
@@ -1614,24 +1720,81 @@ function escapeHTML(text) {
 }
 
 
-function formatMarkdown(text) {
+/*
+  Convert doubled AI backslashes into normal
+  LaTeX backslashes.
 
-  if (text === null || text === undefined) {
-    return "";
+  Example:
+
+  \\Gamma -> \Gamma
+  \\int   -> \int
+  \\[     -> \[
+  \\]     -> \]
+
+  We only perform this on normal text.
+  Code blocks are protected first.
+*/
+
+function normalizeLatexBackslashes(text) {
+
+  return String(text)
+    .replace(/\\\\/g, "\\");
+}
+
+
+/*
+  Ask MathJax to render the newly-created
+  message after it has been inserted.
+*/
+
+function typesetMath(element) {
+
+  if (
+    window.MathJax &&
+    typeof window.MathJax.typesetPromise === "function"
+  ) {
+
+    window.MathJax.typesetPromise(
+      [element]
+    ).catch(
+      error =>
+        console.error(
+          "MathJax rendering error:",
+          error
+        )
+    );
+
   }
 
-  let value =
-    escapeHTML(text);
+}
+
+
+function formatMarkdown(text) {
+
+  if (
+    text === null ||
+    text === undefined
+  ) {
+
+    return "";
+
+  }
+
+
+  let raw =
+    String(text);
 
 
   /*
-    Protect fenced code blocks first.
+    ---------------------------------------------------------
+    PROTECT FENCED CODE BLOCKS
+    ---------------------------------------------------------
   */
 
   const codeBlocks = [];
 
-  value =
-    value.replace(
+  raw =
+    raw.replace(
       /```([\s\S]*?)```/g,
       (match, code) => {
 
@@ -1639,699 +1802,818 @@ function formatMarkdown(text) {
           codeBlocks.length;
 
         codeBlocks.push(
-          `<pre><code>${code.trim()}</code></pre>`
-        );
+          `<pre><code>${escapeHTML(
+            code.trim()
+          )}</code></pre>`
 
-        return `@@CODEBLOCK${index}@@`;
-
-      }
+```
     );
 
+    return `@@CODEBLOCK${index}@@`;
 
-  /*
-    Protect inline code.
-  */
+  }
+);
+```
 
-  const inlineCode = [];
+/*
+---------------------------------------------------------
+PROTECT INLINE CODE
+---------------------------------------------------------
+*/
 
-  value =
-    value.replace(
-      /`([^`\n]+)`/g,
-      (match, code) => {
+const inlineCode = [];
 
-        const index =
-          inlineCode.length;
+raw =
+raw.replace(
+/`([^`\n]+)`/g,
+(match, code) => {
 
-        inlineCode.push(
-          `<code>${code}</code>`
-        );
+```
+    const index =
+      inlineCode.length;
 
-        return `@@INLINECODE${index}@@`;
-
-      }
+    inlineCode.push(
+      `<code>${escapeHTML(
+        code
+      )}</code>`
     );
 
+    return `@@INLINECODE${index}@@`;
 
-  /*
-    Bold.
-  */
+  }
+);
+```
 
-  value =
-    value.replace(
-      /\*\*(.+?)\*\*/g,
-      "<strong>$1</strong>"
+/*
+---------------------------------------------------------
+NORMALIZE LATEX
+---------------------------------------------------------
+*/
+
+raw =
+normalizeLatexBackslashes(
+raw
+);
+
+/*
+---------------------------------------------------------
+PROTECT LATEX
+---------------------------------------------------------
+
+```
+MathJax needs to see the original LaTeX.
+We protect it while the basic Markdown
+formatter runs so Markdown doesn't modify
+the math.
+```
+
+*/
+
+const mathBlocks = [];
+
+/*
+Display math:
+\(...\)
+\(...\)
+*/
+
+raw =
+raw.replace(
+/\\(([\s\S]*?)\\\)/g,
+(match, math) => {
+
+```
+    const index =
+      mathBlocks.length;
+
+    mathBlocks.push(
+      `\\[${math}\\]`
     );
 
+    return `@@MATHBLOCK${index}@@`;
 
-  /*
-    Italic using single *.
-  */
+  }
+);
+```
 
-  value =
-    value.replace(
-      /(^|[^\*])\*([^*\n]+)\*(?!\*)/g,
-      "$1<em>$2</em>"
+raw =
+raw.replace(
+/$$([\s\S]*?)$$/g,
+(match, math) => {
+
+```
+    const index =
+      mathBlocks.length;
+
+    mathBlocks.push(
+      `$$${math}$$`
     );
 
+    return `@@MATHBLOCK${index}@@`;
 
-  /*
-    Strikethrough.
-  */
+  }
+);
+```
 
-  value =
-    value.replace(
-      /~~(.+?)~~/g,
-      "<del>$1</del>"
+/*
+Inline math:
+\(...\)
+$ ... $
+*/
+
+raw =
+raw.replace(
+/\\(([\s\S]*?)\\\)/g,
+(match, math) => {
+
+```
+    const index =
+      mathBlocks.length;
+
+    mathBlocks.push(
+      `\\(${math}\\)`
     );
 
+    return `@@MATHBLOCK${index}@@`;
 
-  /*
-    Restore inline code.
-  */
+  }
+);
+```
 
-  value =
-    value.replace(
-      /@@INLINECODE(\d+)@@/g,
-      (match, index) =>
-        inlineCode[Number(index)]
+raw =
+raw.replace(
+/$([^$\n]+)$/g,
+(match, math) => {
+
+```
+    const index =
+      mathBlocks.length;
+
+    mathBlocks.push(
+      `$${math}$`
     );
 
+    return `@@MATHBLOCK${index}@@`;
 
-  /*
-    Restore fenced code blocks.
-  */
+  }
+);
+```
 
-  value =
-    value.replace(
-      /@@CODEBLOCK(\d+)@@/g,
-      (match, index) =>
-        codeBlocks[Number(index)]
-    );
+/*
+---------------------------------------------------------
+ESCAPE HTML
+---------------------------------------------------------
+*/
 
+let value =
+escapeHTML(
+raw
+);
 
-  /*
-    Basic unordered lists.
+/*
+---------------------------------------------------------
+BOLD
+---------------------------------------------------------
+*/
 
-    "- item"
-    "* item"
-  */
+value =
+value.replace(
+/**(.+?)**/g,
+"<strong>$1</strong>"
+);
 
-  value =
-    value.replace(
-      /(?:^|\n)(?:- |\* )(.+)(?=\n|$)/g,
-      (match, item) =>
-        `<li>${item}</li>`
-    );
+/*
+---------------------------------------------------------
+ITALIC
+---------------------------------------------------------
+*/
 
+value =
+value.replace(
+/(^|[^*])*([^*\n]+)*(?!*)/g,
+"$1<em>$2</em>"
+);
 
-  /*
-    Group consecutive list items.
-  */
+/*
+---------------------------------------------------------
+STRIKETHROUGH
+---------------------------------------------------------
+*/
 
-  value =
-    value.replace(
-      /(?:<li>.*?<\/li>\n?)+/g,
-      list => {
+value =
+value.replace(
+/~~(.+?)~~/g,
+"<del>$1</del>"
+);
 
-        return `<ul>${list}</ul>`;
+/*
+---------------------------------------------------------
+LISTS
+---------------------------------------------------------
+*/
 
-      }
-    );
+value =
+value.replace(
+/(?:^|\n)(?:- |* )(.+)(?=\n|$)/g,
+(match, item) =>
+`<li>${item}</li>`
+);
 
+value =
+value.replace(
+/(?:<li>.*?</li>\n?)+/g,
+list =>
+`<ul>${list}</ul>`
+);
 
-  /*
-    Basic ordered lists.
-  */
+/*
+---------------------------------------------------------
+ORDERED LISTS
+---------------------------------------------------------
+*/
 
-  value =
-    value.replace(
-      /(?:^|\n)\d+\.\s+(.+)(?=\n|$)/g,
-      (match, item) =>
-        `<li>${item}</li>`
-    );
+value =
+value.replace(
+/(?:^|\n)\d+.\s+(.+)(?=\n|$)/g,
+(match, item) =>
+`<li>${item}</li>`
+);
 
+/*
+---------------------------------------------------------
+NEWLINES
+---------------------------------------------------------
+*/
 
-  /*
-    Preserve normal newlines.
-  */
+value =
+value.replace(
+/\n/g,
+"<br>"
+);
 
-  value =
-    value.replace(
-      /\n/g,
-      "<br>"
-    );
+/*
+---------------------------------------------------------
+RESTORE INLINE CODE
+---------------------------------------------------------
+*/
 
+value =
+value.replace(
+/@@INLINECODE(\d+)@@/g,
+(match, index) =>
+inlineCode[
+Number(index)
+]
+);
 
-  return value;
+/*
+---------------------------------------------------------
+RESTORE CODE BLOCKS
+---------------------------------------------------------
+*/
+
+value =
+value.replace(
+/@@CODEBLOCK(\d+)@@/g,
+(match, index) =>
+codeBlocks[
+Number(index)
+]
+);
+
+/*
+---------------------------------------------------------
+RESTORE MATH
+---------------------------------------------------------
+
+```
+Math is restored LAST so Markdown doesn't
+touch the LaTeX.
+```
+
+*/
+
+value =
+value.replace(
+/@@MATHBLOCK(\d+)@@/g,
+(match, index) =>
+mathBlocks[
+Number(index)
+]
+);
+
+return value;
 
 }
 
-
-/* MESSAGES */
+/* =========================================================
+MESSAGES
+========================================================= */
 
 function renderMessages() {
 
-  messages.innerHTML = "";
+messages.innerHTML = "";
 
-  const chat =
-    getCurrentChat();
+const chat =
+getCurrentChat();
 
-  if (
-    !chat ||
-    chat.messages.length === 0
-  ) {
+if (
+!chat ||
+chat.messages.length === 0
+) {
 
-    welcome.style.display =
-      "block";
+```
+welcome.style.display =
+  "block";
 
-    return;
-
-  }
-
-  welcome.style.display =
-    "none";
-
-  chat.messages.forEach(
-    message => {
-
-      addMessageElement(
-        message.role,
-        message.content
-      );
-
-    }
-  );
-
-  scrollToBottom();
+return;
+```
 
 }
 
+welcome.style.display =
+"none";
+
+chat.messages.forEach(
+message => {
+
+```
+  addMessageElement(
+    message.role,
+    message.content
+  );
+
+}
+```
+
+);
+
+typesetMath(
+messages
+);
+
+scrollToBottom();
+
+}
 
 function addMessageElement(
-  role,
-  text,
-  extraClass = ""
+role,
+text,
+extraClass = ""
 ) {
 
-  const message =
-    document.createElement(
-      "div"
-    );
+const message =
+document.createElement(
+"div"
+);
 
-  message.className =
-    `message ${role} ${extraClass}`;
+message.className =
+`message ${role} ${extraClass}`;
 
+const box =
+document.createElement(
+"div"
+);
 
-  const box =
-    document.createElement(
-      "div"
-    );
+box.className =
+"message-box";
 
-  box.className =
-    "message-box";
+const avatar =
+document.createElement(
+"div"
+);
 
+avatar.className =
+"avatar";
 
-  const avatar =
-    document.createElement(
-      "div"
-    );
+avatar.textContent =
+role === "user"
+? "●"
+: "☾";
 
-  avatar.className =
-    "avatar";
+const content =
+document.createElement(
+"div"
+);
 
-  avatar.textContent =
-    role === "user"
-      ? "●"
-      : "☾";
+content.className =
+"message-content";
 
-
-  const content =
-    document.createElement(
-      "div"
-    );
-
-  content.className =
-    "message-content";
-
-
-  /*
-    IMPORTANT:
-
-    Previously this used:
-
-      content.textContent = text;
-
-    That caused Markdown to appear literally.
-
-    Now we safely convert Markdown into HTML.
-  */
-
-  if (extraClass === "thinking") {
-
-    content.textContent =
-      text;
-
-  } else {
-
-    content.innerHTML =
-      formatMarkdown(text);
-
-  }
-
-
-  box.appendChild(
-    avatar
-  );
-
-  box.appendChild(
-    content
-  );
-
-  message.appendChild(
-    box
-  );
-
-  messages.appendChild(
-    message
-  );
-
-  return message;
-
-}
-
-
-function addMessage(
-  role,
-  text
+if (
+extraClass === "thinking"
 ) {
 
-  welcome.style.display =
-    "none";
+```
+content.textContent =
+  text;
+```
 
-  addMessageElement(
-    role,
+} else {
+
+```
+content.innerHTML =
+  formatMarkdown(
     text
   );
-
-  scrollToBottom();
+```
 
 }
 
+box.appendChild(
+avatar
+);
+
+box.appendChild(
+content
+);
+
+message.appendChild(
+box
+);
+
+messages.appendChild(
+message
+);
+
+/*
+Render LaTeX after inserting
+the message into the page.
+*/
+
+if (
+extraClass !== "thinking"
+) {
+
+```
+typesetMath(
+  content
+);
+```
+
+}
+
+return message;
+
+}
+
+function addMessage(
+role,
+text
+) {
+
+welcome.style.display =
+"none";
+
+addMessageElement(
+role,
+text
+);
+
+scrollToBottom();
+
+}
 
 function scrollToBottom() {
 
-  setTimeout(
-    () => {
+setTimeout(
+() => {
 
-      chatArea.scrollTop =
-        chatArea.scrollHeight;
+```
+  chatArea.scrollTop =
+    chatArea.scrollHeight;
 
-    },
-    30
-  );
+},
+30
+```
+
+);
 
 }
 
-
-/* SAVE MESSAGE */
+/* =========================================================
+SAVE MESSAGE
+========================================================= */
 
 function saveMessage(
-  role,
-  content
+role,
+content
 ) {
 
-  const chat =
-    getCurrentChat();
+const chat =
+getCurrentChat();
 
-  if (!chat) return;
+if (!chat) return;
 
-  chat.messages.push({
+chat.messages.push({
 
-    role:
-      role,
+```
+role:
+  role,
 
-    content:
-      content
+content:
+  content
+```
 
-  });
+});
 
+if (
+role === "user" &&
+chat.title === "New chat"
+) {
 
-  if (
-    role === "user" &&
-    chat.title === "New chat"
-  ) {
-
-    chat.title =
-      content.length > 32
-        ? content.substring(
-            0,
-            32
-          ) + "..."
-        : content;
-
-  }
-
-  saveChats();
-
-  renderSidebar();
+```
+chat.title =
+  content.length > 32
+    ? content.substring(
+        0,
+        32
+      ) + "..."
+    : content;
+```
 
 }
 
+saveChats();
 
-/* MEMORY */
+renderSidebar();
+
+}
+
+/* =========================================================
+MEMORY
+========================================================= */
 
 function buildMemoryForLuna() {
 
-  return memory.map(
-    item => ({
+return memory.map(
+item => ({
 
-      title:
-        item.title,
+```
+  title:
+    item.title,
 
-      messages:
-        item.messages
+  messages:
+    item.messages
 
-    })
-  );
+})
+```
+
+);
 
 }
 
-
 /* =========================================================
-   MOBILE-SAFE SPEECH SYNTHESIS
-   ========================================================= */
+MOBILE-SAFE SPEECH SYNTHESIS
+========================================================= */
 
 let speechUnlocked = false;
 let speechQueue = [];
 let speechPlaying = false;
 let speechGeneration = 0;
 
-
 function speechSupported() {
 
-  return (
-    "speechSynthesis" in window &&
-    "SpeechSynthesisUtterance" in window
-  );
+return (
+"speechSynthesis" in window &&
+"SpeechSynthesisUtterance" in window
+);
 
 }
-
 
 function getLunaVoice() {
 
-  if (!speechSupported()) {
+if (!speechSupported()) {
 
-    return null;
-
-  }
-
-  const voices =
-    window.speechSynthesis.getVoices();
-
-  if (!voices || !voices.length) {
-
-    return null;
-
-  }
-
-
-  const preferredNames = [
-
-    "Samantha",
-    "Microsoft Zira",
-    "Google US English Female",
-    "Karen",
-    "Victoria",
-    "Moira",
-    "Ava",
-    "Jenny",
-    "Aria",
-    "Google US English"
-
-  ];
-
-
-  for (
-    const name of preferredNames
-  ) {
-
-    const voice =
-      voices.find(
-        voice =>
-          voice.name
-            .toLowerCase()
-            .includes(
-              name.toLowerCase()
-            )
-      );
-
-    if (voice) {
-
-      return voice;
-
-    }
-
-  }
-
-
-  return (
-    voices.find(
-      voice =>
-        voice.lang &&
-        voice.lang
-          .toLowerCase()
-          .startsWith("en-us")
-    ) ||
-
-    voices.find(
-      voice =>
-        voice.lang &&
-        voice.lang
-          .toLowerCase()
-          .startsWith("en")
-    ) ||
-
-    voices[0]
-  );
+```
+return null;
+```
 
 }
 
+const voices =
+window.speechSynthesis.getVoices();
+
+if (
+!voices ||
+!voices.length
+) {
+
+```
+return null;
+```
+
+}
+
+const preferredNames = [
+
+```
+"Samantha",
+"Microsoft Zira",
+"Google US English Female",
+"Karen",
+"Victoria",
+"Moira",
+"Ava",
+"Jenny",
+"Aria",
+"Google US English"
+```
+
+];
+
+for (
+const name of preferredNames
+) {
+
+```
+const voice =
+  voices.find(
+    voice =>
+      voice.name
+        .toLowerCase()
+        .includes(
+          name.toLowerCase()
+        )
+  );
+
+if (voice) {
+
+  return voice;
+
+}
+```
+
+}
+
+return (
+voices.find(
+voice =>
+voice.lang &&
+voice.lang
+.toLowerCase()
+.startsWith("en-us")
+) ||
+
+```
+voices.find(
+  voice =>
+    voice.lang &&
+    voice.lang
+      .toLowerCase()
+      .startsWith("en")
+) ||
+
+voices[0]
+```
+
+);
+
+}
 
 function unlockSpeech() {
 
-  if (!speechSupported()) {
+if (!speechSupported()) {
 
-    return false;
+```
+return false;
+```
 
-  }
+}
 
-  try {
+try {
 
-    const synth =
-      window.speechSynthesis;
+```
+const synth =
+  window.speechSynthesis;
 
-    synth.cancel();
+synth.cancel();
 
-    const unlock =
-      new SpeechSynthesisUtterance(
-        " "
-      );
+const unlock =
+  new SpeechSynthesisUtterance(
+    " "
+  );
 
-    unlock.volume =
-      0.01;
+unlock.volume =
+  0.01;
 
-    unlock.rate =
-      10;
+unlock.rate =
+  10;
 
-    unlock.pitch =
-      1;
+unlock.pitch =
+  1;
 
-    unlock.lang =
-      "en-US";
-
-
-    const voice =
-      getLunaVoice();
-
-    if (voice) {
-
-      unlock.voice =
-        voice;
-
-    }
+unlock.lang =
+  "en-US";
 
 
-    synth.speak(
-      unlock
-    );
+const voice =
+  getLunaVoice();
 
-    speechUnlocked =
-      true;
+if (voice) {
 
-    setTimeout(
-      () => {
-
-        try {
-
-          if (
-            synth.speaking &&
-            synth.paused
-          ) {
-
-            synth.resume();
-
-          }
-
-        } catch (error) {
-
-          console.error(
-            "Speech resume error:",
-            error
-          );
-
-        }
-
-      },
-      100
-    );
-
-
-    return true;
-
-  } catch (error) {
-
-    console.error(
-      "Speech unlock failed:",
-      error
-    );
-
-    return false;
-
-  }
+  unlock.voice =
+    voice;
 
 }
 
 
-function splitSpeechText(text) {
+synth.speak(
+  unlock
+);
 
-  if (!text) return [];
+speechUnlocked =
+  true;
 
-  const clean =
-    String(text)
-      .replace(/\s+/g, " ")
-      .trim();
+setTimeout(
+  () => {
 
-  if (!clean) return [];
+    try {
 
+      if (
+        synth.speaking &&
+        synth.paused
+      ) {
 
-  const sentences =
-    clean.match(
-      /[^.!?]+[.!?]+|[^.!?]+$/g
-    ) || [clean];
-
-
-  const chunks = [];
-  let current = "";
-
-
-  for (
-    const sentence of sentences
-  ) {
-
-    const trimmed =
-      sentence.trim();
-
-    if (!trimmed) continue;
-
-
-    if (
-      (current + " " + trimmed).trim().length
-      <= 220
-    ) {
-
-      current =
-        (
-          current
-            ? current + " "
-            : ""
-        ) +
-        trimmed;
-
-    } else {
-
-      if (current) {
-
-        chunks.push(
-          current
-        );
+        synth.resume();
 
       }
 
+    } catch (error) {
 
-      if (trimmed.length > 220) {
-
-        const words =
-          trimmed.split(" ");
-
-        let part = "";
-
-        words.forEach(
-          word => {
-
-            if (
-              (part + " " + word).trim().length
-              <= 220
-            ) {
-
-              part =
-                (
-                  part
-                    ? part + " "
-                    : ""
-                ) +
-                word;
-
-            } else {
-
-              if (part) {
-
-                chunks.push(
-                  part
-                );
-
-              }
-
-              part =
-                word;
-
-            }
-
-          }
-        );
-
-        if (part) {
-
-          current =
-            part;
-
-        } else {
-
-          current =
-            "";
-
-        }
-
-      } else {
-
-        current =
-          trimmed;
-
-      }
+      console.error(
+        "Speech resume error:",
+        error
+      );
 
     }
 
-  }
+  },
+  100
+);
 
+
+return true;
+```
+
+} catch (error) {
+
+```
+console.error(
+  "Speech unlock failed:",
+  error
+);
+
+return false;
+```
+
+}
+
+}
+
+function splitSpeechText(text) {
+
+if (!text) return [];
+
+const clean =
+String(text)
+.replace(/\s+/g, " ")
+.trim();
+
+if (!clean) return [];
+
+const sentences =
+clean.match(
+/[^.!?]+[.!?]+|[^.!?]+$/g
+) || [clean];
+
+const chunks = [];
+let current = "";
+
+for (
+const sentence of sentences
+) {
+
+```
+const trimmed =
+  sentence.trim();
+
+if (!trimmed) continue;
+
+
+if (
+  (current + " " + trimmed).trim().length
+  <= 220
+) {
+
+  current =
+    (
+      current
+        ? current + " "
+        : ""
+    ) +
+    trimmed;
+
+} else {
 
   if (current) {
 
@@ -2342,43 +2624,236 @@ function splitSpeechText(text) {
   }
 
 
-  return chunks;
+  if (
+    trimmed.length > 220
+  ) {
 
-}
+    const words =
+      trimmed.split(" ");
+
+    let part = "";
 
 
-function stopLunaSpeaking() {
+    words.forEach(
+      word => {
 
-  speechGeneration++;
+        if (
+          (part + " " + word).trim().length
+          <= 220
+        ) {
 
-  speechQueue = [];
+          part =
+            (
+              part
+                ? part + " "
+                : ""
+            ) +
+            word;
 
-  speechPlaying = false;
+        } else {
 
-  if (speechSupported()) {
+          if (part) {
 
-    try {
+            chunks.push(
+              part
+            );
 
-      window.speechSynthesis.cancel();
+          }
 
-    } catch (error) {
+          part =
+            word;
 
-      console.error(
-        "Could not stop speech:",
-        error
-      );
+        }
+
+      }
+    );
+
+
+    if (part) {
+
+      current =
+        part;
+
+    } else {
+
+      current =
+        "";
 
     }
+
+  } else {
+
+    current =
+      trimmed;
 
   }
 
 }
+```
 
+}
+
+if (current) {
+
+```
+chunks.push(
+  current
+);
+```
+
+}
+
+return chunks;
+
+}
+
+function stopLunaSpeaking() {
+
+speechGeneration++;
+
+speechQueue = [];
+
+speechPlaying = false;
+
+if (speechSupported()) {
+
+```
+try {
+
+  window.speechSynthesis.cancel();
+
+} catch (error) {
+
+  console.error(
+    "Could not stop speech:",
+    error
+  );
+
+}
+```
+
+}
+
+}
 
 function speakNextChunk(
-  generation
+generation
 ) {
 
+if (
+generation !== speechGeneration
+) {
+
+```
+speechPlaying =
+  false;
+
+return;
+```
+
+}
+
+if (!speechQueue.length) {
+
+```
+speechPlaying =
+  false;
+
+
+if (
+  voiceMode &&
+  recognition &&
+  !recognitionActive
+) {
+
+  setTimeout(
+    () => {
+
+      if (
+        voiceMode &&
+        recognition &&
+        !recognitionActive
+      ) {
+
+        try {
+
+          recognition.start();
+
+        } catch (error) {
+
+          console.error(
+            "Could not restart microphone:",
+            error
+          );
+
+        }
+
+      }
+
+    },
+    350
+  );
+
+}
+
+return;
+```
+
+}
+
+const text =
+speechQueue.shift();
+
+const utterance =
+new SpeechSynthesisUtterance(
+text
+);
+
+const voice =
+getLunaVoice();
+
+if (voice) {
+
+```
+utterance.voice =
+  voice;
+
+utterance.lang =
+  voice.lang;
+```
+
+} else {
+
+```
+utterance.lang =
+  "en-US";
+```
+
+}
+
+utterance.rate =
+1.0;
+
+utterance.pitch =
+1.08;
+
+utterance.volume =
+1.0;
+
+utterance.onstart =
+() => {
+
+```
+  voiceStatus.textContent =
+    "🔊 Luna is speaking...";
+
+};
+```
+
+utterance.onend =
+() => {
+
+```
   if (
     generation !== speechGeneration
   ) {
@@ -2391,249 +2866,202 @@ function speakNextChunk(
   }
 
 
-  if (!speechQueue.length) {
-
-    speechPlaying =
-      false;
-
-
-    if (
-      voiceMode &&
-      recognition &&
-      !recognitionActive
-    ) {
-
-      setTimeout(
-        () => {
-
-          if (
-            voiceMode &&
-            recognition &&
-            !recognitionActive
-          ) {
-
-            try {
-
-              recognition.start();
-
-            } catch (error) {
-
-              console.error(
-                "Could not restart microphone:",
-                error
-              );
-
-            }
-
-          }
-
-        },
-        350
-      );
-
-    }
-
-    return;
-
-  }
-
-
-  const text =
-    speechQueue.shift();
-
-  const utterance =
-    new SpeechSynthesisUtterance(
-      text
-    );
-
-
-  const voice =
-    getLunaVoice();
-
-  if (voice) {
-
-    utterance.voice =
-      voice;
-
-    utterance.lang =
-      voice.lang;
-
-  } else {
-
-    utterance.lang =
-      "en-US";
-
-  }
-
-
-  utterance.rate =
-    1.0;
-
-  utterance.pitch =
-    1.08;
-
-  utterance.volume =
-    1.0;
-
-
-  utterance.onstart =
+  setTimeout(
     () => {
 
-      voiceStatus.textContent =
-        "🔊 Luna is speaking...";
+      try {
 
-    };
+        if (
+          window.speechSynthesis.paused
+        ) {
 
+          window.speechSynthesis.resume();
 
-  utterance.onend =
-    () => {
+        }
 
-      if (
-        generation !== speechGeneration
-      ) {
+      } catch (error) {
 
-        speechPlaying =
-          false;
-
-        return;
-
-      }
-
-
-      setTimeout(
-        () => {
-
-          try {
-
-            if (
-              window.speechSynthesis.paused
-            ) {
-
-              window.speechSynthesis.resume();
-
-            }
-
-          } catch (error) {
-
-            console.error(
-              error
-            );
-
-          }
-
-          speakNextChunk(
-            generation
-          );
-
-        },
-        80
-      );
-
-    };
-
-
-  utterance.onerror =
-    event => {
-
-      console.error(
-        "Speech synthesis error:",
-        event
-      );
-
-
-      if (
-        generation === speechGeneration
-      ) {
-
-        setTimeout(
-          () => {
-
-            speakNextChunk(
-              generation
-            );
-
-          },
-          100
+        console.error(
+          error
         );
 
       }
 
-    };
+      speakNextChunk(
+        generation
+      );
+
+    },
+    80
+  );
+
+};
+```
+
+utterance.onerror =
+event => {
+
+```
+  console.error(
+    "Speech synthesis error:",
+    event
+  );
 
 
-  try {
+  if (
+    generation === speechGeneration
+  ) {
 
-    if (
-      window.speechSynthesis.paused
-    ) {
+    setTimeout(
+      () => {
 
-      window.speechSynthesis.resume();
+        speakNextChunk(
+          generation
+        );
 
-    }
-
-    window.speechSynthesis.speak(
-      utterance
+      },
+      100
     );
-
-  } catch (error) {
-
-    console.error(
-      "Speech synthesis failed:",
-      error
-    );
-
-    speechPlaying =
-      false;
 
   }
+
+};
+```
+
+try {
+
+```
+if (
+  window.speechSynthesis.paused
+) {
+
+  window.speechSynthesis.resume();
 
 }
 
+window.speechSynthesis.speak(
+  utterance
+);
+```
+
+} catch (error) {
+
+```
+console.error(
+  "Speech synthesis failed:",
+  error
+);
+
+speechPlaying =
+  false;
+```
+
+}
+
+}
 
 function speakAsLuna(text) {
 
-  if (!speechSupported()) {
+if (!speechSupported()) {
 
-    console.warn(
-      "Speech synthesis is not supported."
-    );
+```
+console.warn(
+  "Speech synthesis is not supported."
+);
 
-    return;
+return;
+```
 
-  }
+}
 
+if (!speechUnlocked) {
 
-  if (!speechUnlocked) {
+```
+unlockSpeech();
+```
 
-    unlockSpeech();
+}
 
-  }
+stopLunaSpeaking();
 
+const chunks =
+splitSpeechText(
+text
+);
 
-  stopLunaSpeaking();
+if (!chunks.length) {
 
+```
+return;
+```
 
-  const chunks =
-    splitSpeechText(
-      text
-    );
+}
 
-  if (!chunks.length) {
+speechQueue =
+chunks;
 
-    return;
+speechPlaying =
+true;
 
-  }
+const generation =
+speechGeneration;
 
+try {
 
-  speechQueue =
-    chunks;
+```
+window.speechSynthesis.resume();
+```
 
-  speechPlaying =
-    true;
+} catch (error) {
 
-  const generation =
-    speechGeneration;
+```
+console.error(
+  error
+);
+```
 
+}
+
+speakNextChunk(
+generation
+);
+
+}
+
+if (speechSupported()) {
+
+window.speechSynthesis.onvoiceschanged =
+() => {
+
+```
+  getLunaVoice();
+
+};
+```
+
+setTimeout(
+() => {
+
+```
+  getLunaVoice();
+
+},
+100
+```
+
+);
+
+}
+
+setInterval(
+() => {
+
+```
+if (
+  speechSupported() &&
+  window.speechSynthesis.speaking &&
+  window.speechSynthesis.paused
+) {
 
   try {
 
@@ -2642,77 +3070,26 @@ function speakAsLuna(text) {
   } catch (error) {
 
     console.error(
+      "Speech keep-alive error:",
       error
     );
 
   }
 
-
-  speakNextChunk(
-    generation
-  );
-
 }
+```
 
-
-if (speechSupported()) {
-
-  window.speechSynthesis.onvoiceschanged =
-    () => {
-
-      getLunaVoice();
-
-    };
-
-
-  setTimeout(
-    () => {
-
-      getLunaVoice();
-
-    },
-    100
-  );
-
-}
-
-
-setInterval(
-  () => {
-
-    if (
-      speechSupported() &&
-      window.speechSynthesis.speaking &&
-      window.speechSynthesis.paused
-    ) {
-
-      try {
-
-        window.speechSynthesis.resume();
-
-      } catch (error) {
-
-        console.error(
-          "Speech keep-alive error:",
-          error
-        );
-
-      }
-
-    }
-
-  },
-  1000
+},
+1000
 );
 
-
 /* =========================================================
-   VOICE RECOGNITION
-   ========================================================= */
+VOICE RECOGNITION
+========================================================= */
 
 const SpeechRecognition =
-  window.SpeechRecognition ||
-  window.webkitSpeechRecognition;
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
 
 let recognition = null;
 
@@ -2720,184 +3097,25 @@ let voiceMode = false;
 
 let recognitionActive = false;
 
-
 if (SpeechRecognition) {
 
-  recognition =
-    new SpeechRecognition();
+recognition =
+new SpeechRecognition();
 
-  recognition.continuous =
-    false;
+recognition.continuous =
+false;
 
-  recognition.interimResults =
-    false;
+recognition.interimResults =
+false;
 
-  recognition.lang =
-    "en-US";
+recognition.lang =
+"en-US";
 
+recognition.onstart =
+() => {
 
-  recognition.onstart =
-    () => {
-
-      recognitionActive =
-        true;
-
-      voiceCall.classList.add(
-        "active"
-      );
-
-      voiceStatus.classList.add(
-        "visible"
-      );
-
-      voiceStatus.textContent =
-        "🎙 Listening...";
-
-    };
-
-
-  recognition.onresult =
-    event => {
-
-      const transcript =
-        event
-          .results[0][0]
-          .transcript
-          .trim();
-
-
-      recognitionActive =
-        false;
-
-
-      voiceStatus.textContent =
-        "Luna is thinking...";
-
-
-      if (transcript) {
-
-        sendMessage(
-          transcript,
-          true
-        );
-
-      }
-
-    };
-
-
-  recognition.onerror =
-    event => {
-
-      console.error(
-        "Voice recognition error:",
-        event.error
-      );
-
-      recognitionActive =
-        false;
-
-
-      if (
-        event.error === "no-speech"
-      ) {
-
-        if (voiceMode) {
-
-          voiceStatus.textContent =
-            "🎙 Didn't hear you. Listening again...";
-
-          setTimeout(
-            () => {
-
-              if (
-                voiceMode &&
-                !recognitionActive
-              ) {
-
-                try {
-
-                  recognition.start();
-
-                } catch (error) {
-
-                  console.error(
-                    error
-                  );
-
-                }
-
-              }
-
-            },
-            500
-          );
-
-        }
-
-        return;
-
-      }
-
-
-      voiceStatus.classList.remove(
-        "visible"
-      );
-
-      voiceCall.classList.remove(
-        "active"
-      );
-
-      voiceMode =
-        false;
-
-    };
-
-
-  recognition.onend =
-    () => {
-
-      recognitionActive =
-        false;
-
-      if (!voiceMode) {
-
-        voiceStatus.classList.remove(
-          "visible"
-        );
-
-        voiceCall.classList.remove(
-          "active"
-        );
-
-      }
-
-    };
-
-}
-
-
-/* =========================================================
-   START / STOP VOICE CALL
-   ========================================================= */
-
-function startVoiceCall() {
-
-  if (!recognition) {
-
-    alert(
-      "Voice recognition is not supported by this browser. Try Chrome or Edge."
-    );
-
-    return;
-
-  }
-
-
-  unlockSpeech();
-
-
-  voiceMode =
+```
+  recognitionActive =
     true;
 
   voiceCall.classList.add(
@@ -2911,27 +3129,94 @@ function startVoiceCall() {
   voiceStatus.textContent =
     "🎙 Listening...";
 
+};
+```
 
-  try {
+recognition.onresult =
+event => {
 
-    recognition.start();
+```
+  const transcript =
+    event
+      .results[0][0]
+      .transcript
+      .trim();
 
-  } catch (error) {
 
-    console.error(
-      "Could not start voice recognition:",
-      error
+  recognitionActive =
+    false;
+
+
+  voiceStatus.textContent =
+    "Luna is thinking...";
+
+
+  if (transcript) {
+
+    sendMessage(
+      transcript,
+      true
     );
 
   }
 
-}
+};
+```
 
+recognition.onerror =
+event => {
 
-function stopVoiceCall() {
+```
+  console.error(
+    "Voice recognition error:",
+    event.error
+  );
 
-  voiceMode =
+  recognitionActive =
     false;
+
+
+  if (
+    event.error === "no-speech"
+  ) {
+
+    if (voiceMode) {
+
+      voiceStatus.textContent =
+        "🎙 Didn't hear you. Listening again...";
+
+      setTimeout(
+        () => {
+
+          if (
+            voiceMode &&
+            !recognitionActive
+          ) {
+
+            try {
+
+              recognition.start();
+
+            } catch (error) {
+
+              console.error(
+                error
+              );
+
+            }
+
+          }
+
+        },
+        500
+      );
+
+    }
+
+    return;
+
+  }
+
 
   voiceStatus.classList.remove(
     "visible"
@@ -2941,359 +3226,465 @@ function stopVoiceCall() {
     "active"
   );
 
+  voiceMode =
+    false;
+
+};
+```
+
+recognition.onend =
+() => {
+
+```
+  recognitionActive =
+    false;
+
+  if (!voiceMode) {
+
+    voiceStatus.classList.remove(
+      "visible"
+    );
+
+    voiceCall.classList.remove(
+      "active"
+    );
+
+  }
+
+};
+```
+
+}
+
+/* =========================================================
+START / STOP VOICE CALL
+========================================================= */
+
+function startVoiceCall() {
+
+if (!recognition) {
+
+```
+alert(
+  "Voice recognition is not supported by this browser. Try Chrome or Edge."
+);
+
+return;
+```
+
+}
+
+unlockSpeech();
+
+voiceMode =
+true;
+
+voiceCall.classList.add(
+"active"
+);
+
+voiceStatus.classList.add(
+"visible"
+);
+
+voiceStatus.textContent =
+"🎙 Listening...";
+
+try {
+
+```
+recognition.start();
+```
+
+} catch (error) {
+
+```
+console.error(
+  "Could not start voice recognition:",
+  error
+);
+```
+
+}
+
+}
+
+function stopVoiceCall() {
+
+voiceMode =
+false;
+
+voiceStatus.classList.remove(
+"visible"
+);
+
+voiceCall.classList.remove(
+"active"
+);
+
+stopLunaSpeaking();
+
+if (
+recognition &&
+recognitionActive
+) {
+
+```
+try {
+
+  recognition.stop();
+
+} catch (error) {
+
+  console.error(
+    error
+  );
+
+}
+```
+
+}
+
+}
+
+voiceCall.addEventListener(
+"click",
+() => {
+
+```
+if (voiceMode) {
+
+  stopVoiceCall();
+
+} else {
+
+  startVoiceCall();
+
+}
+```
+
+}
+);
+
+/* =========================================================
+SEND MESSAGE
+========================================================= */
+
+async function sendMessage(
+text,
+fromVoice = false
+) {
+
+text =
+text.trim();
+
+if (!text) return;
+
+if (!currentChat) {
+
+```
+createChat();
+```
+
+}
+
+const chat =
+getCurrentChat();
+
+addMessage(
+"user",
+text
+);
+
+saveMessage(
+"user",
+text
+);
+
+conversation.push({
+
+```
+role:
+  "user",
+
+content:
+  text
+```
+
+});
+
+input.value =
+"";
+
+input.style.height =
+"auto";
+
+sendButton.disabled =
+true;
+
+const thinking =
+addMessageElement(
+"assistant",
+"Thinking...",
+"thinking"
+);
+
+thinking
+.querySelector(
+".message-content"
+)
+.classList.add(
+"thinking"
+);
+
+scrollToBottom();
+
+try {
+
+```
+const response =
+  await fetch(
+    "/api/chat",
+    {
+
+      method:
+        "POST",
+
+      headers: {
+
+        "Content-Type":
+          "application/json"
+
+      },
+
+      body:
+        JSON.stringify({
+
+          messages:
+            conversation,
+
+          memory:
+            buildMemoryForLuna()
+
+        })
+
+    }
+  );
+
+
+const data =
+  await response.json();
+
+
+thinking.remove();
+
+
+if (!response.ok) {
+
+  throw new Error(
+    data.error ||
+    "Luna could not respond."
+  );
+
+}
+
+
+const answer =
+  data.message?.content ||
+  data.response ||
+  "Luna didn't return a response.";
+
+
+addMessage(
+  "assistant",
+  answer
+);
+
+
+saveMessage(
+  "assistant",
+  answer
+);
+
+
+conversation.push({
+
+  role:
+    "assistant",
+
+  content:
+    answer
+
+});
+
+
+if (fromVoice) {
+
+  speakAsLuna(
+    answer
+  );
+
+}
+```
+
+} catch (error) {
+
+```
+console.error(
+  "Luna error:",
+  error
+);
+
+
+thinking
+  .querySelector(
+    ".message-content"
+  )
+  .textContent =
+    "Luna couldn't respond right now.";
+
+
+if (fromVoice) {
 
   stopLunaSpeaking();
 
+  voiceStatus.textContent =
+    "Voice call stopped.";
 
-  if (
-    recognition &&
-    recognitionActive
-  ) {
+  voiceMode =
+    false;
 
-    try {
+  voiceCall.classList.remove(
+    "active"
+  );
 
-      recognition.stop();
 
-    } catch (error) {
+  setTimeout(
+    () => {
 
-      console.error(
-        error
+      voiceStatus.classList.remove(
+        "visible"
       );
 
-    }
+    },
+    1500
+  );
 
-  }
+}
+```
+
+} finally {
+
+```
+sendButton.disabled =
+  false;
+
+
+if (!fromVoice) {
+
+  input.focus();
+
+}
+```
 
 }
 
-
-voiceCall.addEventListener(
-  "click",
-  () => {
-
-    if (voiceMode) {
-
-      stopVoiceCall();
-
-    } else {
-
-      startVoiceCall();
-
-    }
-
-  }
-);
-
+}
 
 /* =========================================================
-   SEND MESSAGE
-   ========================================================= */
-
-async function sendMessage(
-  text,
-  fromVoice = false
-) {
-
-  text =
-    text.trim();
-
-  if (!text) return;
-
-
-  if (!currentChat) {
-
-    createChat();
-
-  }
-
-
-  const chat =
-    getCurrentChat();
-
-
-  addMessage(
-    "user",
-    text
-  );
-
-  saveMessage(
-    "user",
-    text
-  );
-
-
-  conversation.push({
-
-    role:
-      "user",
-
-    content:
-      text
-
-  });
-
-
-  input.value =
-    "";
-
-  input.style.height =
-    "auto";
-
-  sendButton.disabled =
-    true;
-
-
-  const thinking =
-    addMessageElement(
-      "assistant",
-      "Thinking...",
-      "thinking"
-    );
-
-
-  thinking
-    .querySelector(
-      ".message-content"
-    )
-    .classList.add(
-      "thinking"
-    );
-
-
-  scrollToBottom();
-
-
-  try {
-
-    const response =
-      await fetch(
-        "/api/chat",
-        {
-
-          method:
-            "POST",
-
-          headers: {
-
-            "Content-Type":
-              "application/json"
-
-          },
-
-          body:
-            JSON.stringify({
-
-              messages:
-                conversation,
-
-              memory:
-                buildMemoryForLuna()
-
-            })
-
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    thinking.remove();
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        data.error ||
-        "Luna could not respond."
-      );
-
-    }
-
-
-    const answer =
-      data.message?.content ||
-      data.response ||
-      "Luna didn't return a response.";
-
-
-    addMessage(
-      "assistant",
-      answer
-    );
-
-
-    saveMessage(
-      "assistant",
-      answer
-    );
-
-
-    conversation.push({
-
-      role:
-        "assistant",
-
-      content:
-        answer
-
-    });
-
-
-    if (fromVoice) {
-
-      speakAsLuna(
-        answer
-      );
-
-    }
-
-
-  } catch (error) {
-
-    console.error(
-      "Luna error:",
-      error
-    );
-
-
-    thinking
-      .querySelector(
-        ".message-content"
-      )
-      .textContent =
-        "Luna couldn't respond right now.";
-
-
-    if (fromVoice) {
-
-      stopLunaSpeaking();
-
-      voiceStatus.textContent =
-        "Voice call stopped.";
-
-      voiceMode =
-        false;
-
-      voiceCall.classList.remove(
-        "active"
-      );
-
-
-      setTimeout(
-        () => {
-
-          voiceStatus.classList.remove(
-            "visible"
-          );
-
-        },
-        1500
-      );
-
-    }
-
-  } finally {
-
-    sendButton.disabled =
-      false;
-
-
-    if (!fromVoice) {
-
-      input.focus();
-
-    }
-
-  }
-
-}
-
-
-/* QUICK MESSAGE */
+QUICK MESSAGE
+========================================================= */
 
 function quickMessage(text) {
 
-  sendMessage(
-    text
-  );
+sendMessage(
+text
+);
 
 }
 
-
-/* FORM */
+/* =========================================================
+FORM
+========================================================= */
 
 form.addEventListener(
-  "submit",
-  event => {
+"submit",
+event => {
 
-    event.preventDefault();
+```
+event.preventDefault();
 
-    sendMessage(
-      input.value
-    );
+sendMessage(
+  input.value
+);
+```
 
-  }
+}
 );
 
-
-/* ENTER TO SEND */
+/* =========================================================
+ENTER TO SEND
+========================================================= */
 
 input.addEventListener(
-  "keydown",
-  event => {
+"keydown",
+event => {
 
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey
-    ) {
+```
+if (
+  event.key === "Enter" &&
+  !event.shiftKey
+) {
 
-      event.preventDefault();
+  event.preventDefault();
 
-      form.requestSubmit();
+  form.requestSubmit();
 
-    }
+}
+```
 
-  }
+}
 );
 
-
-/* AUTO RESIZE */
+/* =========================================================
+AUTO RESIZE
+========================================================= */
 
 input.addEventListener(
-  "input",
-  () => {
+"input",
+() => {
 
-    input.style.height =
-      "auto";
+```
+input.style.height =
+  "auto";
 
-    input.style.height =
-      Math.min(
-        input.scrollHeight,
-        120
-      ) + "px";
+input.style.height =
+  Math.min(
+    input.scrollHeight,
+    120
+  ) + "px";
+```
 
-  }
+}
 );
 
-
-/* STARTUP */
+/* =========================================================
+STARTUP
+========================================================= */
 
 function loadInitialState() {
 
-  currentChat =
-    null;
+currentChat =
+null;
 
-  conversation =
-    [];
+conversation =
+[];
 
-  renderSidebar();
+renderSidebar();
 
-  renderMessages();
+renderMessages();
 
 }
-
 
 loadInitialState();
 
