@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1776,8 +1776,11 @@ let conversation = [];
    TOOLS
    ========================================================= */
 
-let thinkHarderEnabled = false;
-let webSearchEnabled = localStorage.getItem("luna_web_search") === "true";
+let thinkHarderEnabled =
+  localStorage.getItem("luna_think_harder") === "true";
+
+let webSearchEnabled =
+  localStorage.getItem("luna_web_search") === "true";
 
 
 /* =========================================================
@@ -1973,12 +1976,20 @@ function updateThinkHarderButton() {
 }
 
 
+updateThinkHarderButton();
+
+
 thinkHarderButton.addEventListener(
   "click",
   () => {
 
     thinkHarderEnabled =
       !thinkHarderEnabled;
+
+    localStorage.setItem(
+      "luna_think_harder",
+      String(thinkHarderEnabled)
+    );
 
     updateThinkHarderButton();
 
@@ -2010,19 +2021,12 @@ function updateWebSearchButton() {
 }
 
 
-updateWebSearchButton();
-
 webSearchButton.addEventListener(
   "click",
   () => {
 
     webSearchEnabled =
       !webSearchEnabled;
-
-    localStorage.setItem(
-      "luna_web_search",
-      String(webSearchEnabled)
-    );
 
     updateWebSearchButton();
 
@@ -4113,6 +4117,20 @@ async function sendMessage(
 
   try {
 
+    console.log("LUNA REQUEST TO SERVER:", {
+      thinkHarder:
+        thinkHarderButton.getAttribute("aria-pressed") === "true",
+      webSearch:
+        webSearchButton.getAttribute("aria-pressed") === "true"
+    });
+
+    console.log("LUNA REQUEST TO SERVER:", {
+      thinkHarder:
+        thinkHarderButton.getAttribute("aria-pressed") === "true",
+      webSearch:
+        webSearchButton.getAttribute("aria-pressed") === "true"
+    });
+
     const response =
       await fetch(
         "/api/chat",
@@ -4137,11 +4155,16 @@ async function sendMessage(
               memory:
                 buildMemoryForLuna(),
 
+              /*
+               * Read the buttons at the exact moment the request
+               * is created. This guarantees the server receives
+               * the state currently shown in the UI.
+               */
               thinkHarder:
-                thinkHarderEnabled,
+                thinkHarderButton.getAttribute("aria-pressed") === "true",
 
               webSearch:
-                Boolean(webSearchEnabled)
+                webSearchButton.getAttribute("aria-pressed") === "true"
 
             })
 
