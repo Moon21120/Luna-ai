@@ -122,8 +122,10 @@ app.post("/api/chat", async (req, res) => {
     const apiKey = process.env.OLLAMA_API_KEY;
 
     if (!apiKey) {
+      console.error("OLLAMA_API_KEY is missing.");
+
       return res.status(500).json({
-        error: "OLLAMA_API_KEY is not configured."
+        error: "The Ollama API key is missing from Render."
       });
     }
 
@@ -131,14 +133,25 @@ app.post("/api/chat", async (req, res) => {
       ? req.body.messages
       : [];
 
+    if (messages.length === 0) {
+      return res.status(400).json({
+        error: "No messages were provided."
+      });
+    }
+
+    console.log("Sending request to Ollama...");
+
     const response = await fetch("https://ollama.com/api/chat", {
       method: "POST",
+
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
+
       body: JSON.stringify({
         model: "kimi-k3:cloud",
+
         messages: [
           {
             role: "system",
@@ -146,25 +159,42 @@ app.post("/api/chat", async (req, res) => {
           },
           ...messages
         ],
+
         stream: false
       })
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      data = {
+        error: rawText || "Ollama returned an invalid response."
+      };
+    }
 
     if (!response.ok) {
+      console.error("Ollama error:", data);
+
       return res.status(response.status).json({
-        error: data.error || "Ollama request failed."
+        error:
+          data.error ||
+          `Ollama returned HTTP ${response.status}.`
       });
     }
 
-    res.json(data);
+    console.log("Ollama response received successfully.");
+
+    return res.json(data);
 
   } catch (error) {
-    console.error("Luna error:", error);
+    console.error("Luna connection error:", error);
 
-    res.status(500).json({
-      error: "Luna could not connect to the AI."
+    return res.status(500).json({
+      error: `Luna could not connect to Ollama: ${error.message}`
     });
   }
 });
