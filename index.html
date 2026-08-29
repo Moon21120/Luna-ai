@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1777,7 +1777,7 @@ let conversation = [];
    ========================================================= */
 
 let thinkHarderEnabled = false;
-let webSearchEnabled = false;
+let webSearchEnabled = localStorage.getItem("luna_web_search") === "true";
 
 
 /* =========================================================
@@ -2010,12 +2010,19 @@ function updateWebSearchButton() {
 }
 
 
+updateWebSearchButton();
+
 webSearchButton.addEventListener(
   "click",
   () => {
 
     webSearchEnabled =
       !webSearchEnabled;
+
+    localStorage.setItem(
+      "luna_web_search",
+      String(webSearchEnabled)
+    );
 
     updateWebSearchButton();
 
@@ -4134,7 +4141,7 @@ async function sendMessage(
                 thinkHarderEnabled,
 
               webSearch:
-                webSearchEnabled
+                Boolean(webSearchEnabled)
 
             })
 
