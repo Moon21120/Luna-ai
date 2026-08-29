@@ -196,11 +196,6 @@ app.post("/api/chat", async (req, res) => {
       ? req.body.memory
       : [];
 
-    const thinkHarder =
-      req.body.thinkHarder === true ||
-      req.body.thinkHarder === "true" ||
-      req.body.thinkHarder === 1;
-
     const searchWebEnabled =
       req.body.searchWeb === true ||
       req.body.searchWeb === "true" ||
@@ -294,26 +289,10 @@ app.post("/api/chat", async (req, res) => {
 
 
     /*
-     * THINK HARDER
+     * REQUEST OPTIONS
      */
 
-    let thinkingContext = "";
-
-    if (thinkHarder) {
-      thinkingContext = [
-        "",
-        "THINK HARDER MODE:",
-        "Use the maximum reasoning effort available to the model.",
-        "Carefully check calculations, logic, assumptions, and important details.",
-        "For difficult problems, reason through the problem carefully before answering.",
-        "Do not reveal private chain-of-thought.",
-        "Give the user the useful conclusion and a concise reasoning summary when appropriate."
-      ].join("\n");
-    }
-
-
     console.log("REQUEST OPTIONS:", {
-      thinkHarder: thinkHarder,
       searchWeb: searchWebEnabled
     });
 
@@ -341,14 +320,11 @@ app.post("/api/chat", async (req, res) => {
               content:
                 LUNA_PERSONALITY +
                 memoryContext +
-                thinkingContext +
                 webContext
             },
 
             ...messages
           ],
-
-          think: thinkHarder,
 
           stream: false
         })
