@@ -98,7 +98,9 @@ async function searchWeb(query, apiKey) {
     data = JSON.parse(rawText);
   } catch {
     data = {
-      error: rawText || "Ollama web search returned an invalid response."
+      error:
+        rawText ||
+        "Ollama web search returned an invalid response."
     };
   }
 
@@ -192,19 +194,22 @@ app.post("/api/chat", async (req, res) => {
       ? req.body.memory
       : [];
 
-    const thinkHarder = req.body.thinkHarder === true;
+    const thinkHarder =
+      req.body.thinkHarder === true;
 
     /*
-     * WEB SEARCH IS CONTROLLED ONLY BY THE TOGGLE.
+     * WEB SEARCH TOGGLE
      *
-     * The frontend must send:
-     * searchWeb: true
+     * The search is OFF unless one of these values
+     * is explicitly boolean true.
      *
-     * when the toggle is ON.
-     *
-     * When it sends false, no web search request is made.
+     * This supports the different names the frontend
+     * might use without accidentally turning search on.
      */
-    const searchWebEnabled = req.body.searchWeb === true;
+    const searchWebEnabled =
+      req.body.searchWeb === true ||
+      req.body.webSearch === true ||
+      req.body.search === true;
 
     if (messages.length === 0) {
       return res.status(400).json({
@@ -242,14 +247,17 @@ app.post("/api/chat", async (req, res) => {
 
     /* CURRENT USER MESSAGE */
 
-    const latestUserMessage = [...messages]
-      .reverse()
-      .find(function(message) {
-        return message.role === "user";
-      });
+    const latestUserMessage =
+      [...messages]
+        .reverse()
+        .find(function(message) {
+          return message.role === "user";
+        });
 
     const userQuery =
-      latestUserMessage?.content || "";
+      typeof latestUserMessage?.content === "string"
+        ? latestUserMessage.content.trim()
+        : "";
 
 
     /* WEB SEARCH */
@@ -258,14 +266,14 @@ app.post("/api/chat", async (req, res) => {
 
     /*
      * IMPORTANT:
-     * This is the ONLY place searchWeb() is called.
      *
-     * If searchWebEnabled is false, this entire block is skipped.
+     * searchWeb() is ONLY called inside this condition.
+     *
+     * Therefore the server will NOT contact the web-search
+     * endpoint at all when the toggle is OFF.
      */
-    if (searchWebEnabled === true && userQuery.trim() !== "") {
+    if (searchWebEnabled === true && userQuery !== "") {
       try {
-        console.log("WEB SEARCH TOGGLE: ON");
-
         const searchData = await searchWeb(
           userQuery,
           apiKey
@@ -286,8 +294,6 @@ app.post("/api/chat", async (req, res) => {
           "Do not pretend that search results were found."
         ].join("\n");
       }
-    } else {
-      console.log("WEB SEARCH TOGGLE: OFF - SKIPPING WEB SEARCH");
     }
 
 
@@ -295,7 +301,7 @@ app.post("/api/chat", async (req, res) => {
 
     let thinkingContext = "";
 
-    if (thinkHarder === true) {
+    if (thinkHarder) {
       thinkingContext = [
         "",
         "THINK HARDER MODE:",
@@ -320,10 +326,12 @@ app.post("/api/chat", async (req, res) => {
       "https://ollama.com/api/chat",
       {
         method: "POST",
+
         headers: {
           "Authorization": "Bearer " + apiKey,
           "Content-Type": "application/json"
         },
+
         body: JSON.stringify({
           model: "gpt-oss:20b-cloud",
 
@@ -336,10 +344,12 @@ app.post("/api/chat", async (req, res) => {
                 thinkingContext +
                 webContext
             },
+
             ...messages
           ],
 
           think: thinkHarder,
+
           stream: false
         })
       }
