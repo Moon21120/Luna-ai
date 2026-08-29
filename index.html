@@ -197,7 +197,7 @@
       z-index: 2000;
       right: 8px;
       top: 38px;
-      width: 190px;
+      width: 150px;
       background: #172335;
       border: 1px solid #304158;
       border-radius: 10px;
@@ -285,6 +285,8 @@
       background: #0b111a;
     }
 
+    /* TOP BAR */
+
     .topbar {
       height: 64px;
       min-height: 64px;
@@ -293,6 +295,7 @@
       display: flex;
       align-items: center;
       padding: 0 25px;
+      gap: 10px;
     }
 
     .model {
@@ -304,6 +307,30 @@
 
     .moon {
       font-size: 22px;
+    }
+
+    /* VOICE CALL BUTTON */
+
+    .voice-call {
+      margin-left: auto;
+      border: 1px solid #304158;
+      background: #172335;
+      color: white;
+      border-radius: 10px;
+      padding: 9px 13px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .voice-call:hover {
+      background: #24364d;
+    }
+
+    .voice-call.active {
+      background: #26364b;
+      border-color: #526987;
     }
 
     /* CHAT */
@@ -524,6 +551,20 @@
       margin-top: 8px;
     }
 
+    /* VOICE STATUS */
+
+    .voice-status {
+      display: none;
+      text-align: center;
+      color: #9aa8ba;
+      font-size: 12px;
+      margin-top: 7px;
+    }
+
+    .voice-status.visible {
+      display: block;
+    }
+
     /* TABLET */
 
     @media (max-width: 900px) {
@@ -625,6 +666,11 @@
 
       .moon {
         font-size: 21px;
+      }
+
+      .voice-call {
+        padding: 8px 10px;
+        font-size: 12px;
       }
 
       .chat {
@@ -767,6 +813,14 @@
         padding-left: 7px;
         padding-right: 7px;
       }
+
+      .voice-call {
+        padding: 7px 8px;
+      }
+
+      .voice-call span:last-child {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -775,10 +829,14 @@
 
 <div class="app">
 
+  <!-- MOBILE SIDEBAR BACKDROP -->
+
   <div
     class="sidebar-overlay"
     id="sidebarOverlay"
   ></div>
+
+  <!-- SIDEBAR -->
 
   <aside
     class="sidebar"
@@ -857,6 +915,8 @@
 
   </aside>
 
+  <!-- MAIN -->
+
   <main class="main">
 
     <header class="topbar">
@@ -882,7 +942,21 @@
 
       </div>
 
+      <!-- VOICE CALL -->
+
+      <button
+        class="voice-call"
+        id="voiceCall"
+        type="button"
+        aria-label="Start voice call"
+      >
+        <span>🎙</span>
+        <span>Voice Call</span>
+      </button>
+
     </header>
+
+    <!-- CHAT -->
 
     <section
       class="chat"
@@ -964,6 +1038,8 @@
 
     </section>
 
+    <!-- COMPOSER -->
+
     <div class="composer-area">
 
       <form
@@ -989,6 +1065,13 @@
         </button>
 
       </form>
+
+      <div
+        class="voice-status"
+        id="voiceStatus"
+      >
+        🎙 Listening...
+      </div>
 
       <div class="note">
         Luna can make mistakes. Check important information.
@@ -1052,6 +1135,12 @@ const sidebar =
 
 const sidebarOverlay =
   document.getElementById("sidebarOverlay");
+
+const voiceCall =
+  document.getElementById("voiceCall");
+
+const voiceStatus =
+  document.getElementById("voiceStatus");
 
 
 /* MOBILE SIDEBAR */
@@ -1146,10 +1235,7 @@ function createChat() {
       "New chat",
 
     messages:
-      [],
-
-    remembered:
-      false
+      []
 
   };
 
@@ -1229,14 +1315,6 @@ function openChat(id) {
 
 function deleteChat(id) {
 
-  const chat =
-    chats.find(
-      chat =>
-        chat.id === id
-    );
-
-  if (!chat) return;
-
   chats =
     chats.filter(
       chat =>
@@ -1248,90 +1326,13 @@ function deleteChat(id) {
     currentChat = null;
     conversation = [];
 
-    /*
-      Start a completely fresh chat.
-      The deleted chat is gone.
-    */
-
-    createChat();
-
-  } else {
-
-    saveChats();
-
-    renderSidebar();
-
   }
 
-}
-
-
-/* REMEMBER CHAT */
-
-function rememberChat(id) {
-
-  const chat =
-    chats.find(
-      chat =>
-        chat.id === id
-    );
-
-  if (!chat) return;
-
-  if (
-    !chat.messages ||
-    chat.messages.length === 0
-  ) {
-
-    alert(
-      "This chat has no messages to remember yet."
-    );
-
-    return;
-
-  }
-
-  /*
-    Remove any previous memory entry
-    belonging to this chat.
-  */
-
-  memory =
-    memory.filter(
-      item =>
-        item.chatId !== id
-    );
-
-  /*
-    Save the entire conversation
-    as a remembered conversation.
-  */
-
-  memory.push({
-
-    chatId:
-      id,
-
-    title:
-      chat.title,
-
-    messages:
-      chat.messages,
-
-    time:
-      Date.now()
-
-  });
-
-  chat.remembered = true;
-
-  saveMemory();
   saveChats();
+
   renderSidebar();
 
-  alert(
-    "Luna will remember this chat."
-  );
+  renderMessages();
 
 }
 
@@ -1379,15 +1380,8 @@ function renderSidebar() {
         "saved-chat";
 
       button.textContent =
-        (
-          chat.remembered
-            ? "★ "
-            : ""
-        ) +
-        (
-          chat.title ||
-          "New chat"
-        );
+        chat.title ||
+        "New chat";
 
       button.onclick =
         () =>
@@ -1461,6 +1455,7 @@ function showChatMenu(
         menu.remove()
     );
 
+
   const menu =
     document.createElement(
       "div"
@@ -1470,37 +1465,7 @@ function showChatMenu(
     "chat-menu";
 
 
-  /* REMEMBER */
-
-  const rememberButton =
-    document.createElement(
-      "button"
-    );
-
-  rememberButton.textContent =
-    chat.remembered
-      ? "✓ Remembered"
-      : "🧠 Remember this chat";
-
-  rememberButton.onclick =
-    event => {
-
-      event.stopPropagation();
-
-      menu.remove();
-
-      if (!chat.remembered) {
-
-        rememberChat(
-          chat.id
-        );
-
-      }
-
-    };
-
-
-  /* DELETE */
+  /* DELETE ONLY */
 
   const deleteButton =
     document.createElement(
@@ -1512,6 +1477,7 @@ function showChatMenu(
 
   deleteButton.textContent =
     "🗑 Delete chat";
+
 
   deleteButton.onclick =
     event => {
@@ -1537,10 +1503,6 @@ function showChatMenu(
 
 
   menu.appendChild(
-    rememberButton
-  );
-
-  menu.appendChild(
     deleteButton
   );
 
@@ -1549,9 +1511,7 @@ function showChatMenu(
   );
 
 
-  /*
-    Close the menu when clicking elsewhere.
-  */
+  /* CLOSE WHEN CLICKING ELSEWHERE */
 
   setTimeout(
     () => {
@@ -1773,12 +1733,6 @@ function saveMessage(
 
 function buildMemoryForLuna() {
 
-  /*
-    Only conversations that the user
-    specifically selected "Remember"
-    are sent as memory.
-  */
-
   return memory.map(
     item => ({
 
@@ -1794,9 +1748,392 @@ function buildMemoryForLuna() {
 }
 
 
+/* SPEECH SYNTHESIS */
+
+/*
+  Uses the browser's built-in voices.
+  No API key or separate voice service
+  is required.
+*/
+
+function getLunaVoice() {
+
+  if (
+    !("speechSynthesis" in window)
+  ) {
+
+    return null;
+
+  }
+
+  const voices =
+    speechSynthesis.getVoices();
+
+  if (!voices.length) {
+
+    return null;
+
+  }
+
+
+  /*
+    Prefer an English female-sounding
+    browser voice when available.
+  */
+
+  const preferredNames = [
+
+    "Samantha",
+    "Microsoft Zira",
+    "Google US English Female",
+    "Karen",
+    "Victoria",
+    "Moira",
+    "Ava",
+    "Jenny",
+    "Aria"
+
+  ];
+
+
+  for (
+    const name of preferredNames
+  ) {
+
+    const voice =
+      voices.find(
+        voice =>
+          voice.name
+            .toLowerCase()
+            .includes(
+              name.toLowerCase()
+            )
+      );
+
+    if (voice) {
+
+      return voice;
+
+    }
+
+  }
+
+
+  /*
+    Otherwise choose an English voice.
+  */
+
+  return (
+    voices.find(
+      voice =>
+        voice.lang &&
+        voice.lang
+          .toLowerCase()
+          .startsWith("en")
+    ) ||
+    voices[0]
+  );
+
+}
+
+
+function speakAsLuna(text) {
+
+  if (
+    !("speechSynthesis" in window)
+  ) {
+
+    return;
+
+  }
+
+  speechSynthesis.cancel();
+
+
+  const utterance =
+    new SpeechSynthesisUtterance(
+      text
+    );
+
+  const voice =
+    getLunaVoice();
+
+  if (voice) {
+
+    utterance.voice =
+      voice;
+
+    utterance.lang =
+      voice.lang;
+
+  } else {
+
+    utterance.lang =
+      "en-US";
+
+  }
+
+
+  /*
+    Slightly feminine/assistant-like
+    default tuning.
+  */
+
+  utterance.rate =
+    1.0;
+
+  utterance.pitch =
+    1.08;
+
+  utterance.volume =
+    1.0;
+
+
+  speechSynthesis.speak(
+    utterance
+  );
+
+}
+
+
+/*
+  Some browsers load their voices
+  asynchronously.
+*/
+
+if (
+  "speechSynthesis" in window
+) {
+
+  speechSynthesis.onvoiceschanged =
+    () => {
+
+      getLunaVoice();
+
+    };
+
+}
+
+
+/* VOICE RECOGNITION */
+
+const SpeechRecognition =
+  window.SpeechRecognition ||
+  window.webkitSpeechRecognition;
+
+let recognition = null;
+
+let voiceMode = false;
+
+let recognitionActive = false;
+
+
+if (SpeechRecognition) {
+
+  recognition =
+    new SpeechRecognition();
+
+  recognition.continuous =
+    false;
+
+  recognition.interimResults =
+    false;
+
+  recognition.lang =
+    "en-US";
+
+
+  recognition.onstart =
+    () => {
+
+      recognitionActive =
+        true;
+
+      voiceCall.classList.add(
+        "active"
+      );
+
+      voiceStatus.classList.add(
+        "visible"
+      );
+
+      voiceStatus.textContent =
+        "🎙 Listening...";
+
+    };
+
+
+  recognition.onresult =
+    event => {
+
+      const transcript =
+        event
+          .results[0][0]
+          .transcript
+          .trim();
+
+
+      recognitionActive =
+        false;
+
+
+      voiceStatus.textContent =
+        "Luna is thinking...";
+
+
+      if (transcript) {
+
+        sendMessage(
+          transcript,
+          true
+        );
+
+      }
+
+    };
+
+
+  recognition.onerror =
+    event => {
+
+      console.error(
+        "Voice recognition error:",
+        event.error
+      );
+
+      recognitionActive =
+        false;
+
+      voiceStatus.classList.remove(
+        "visible"
+      );
+
+      voiceCall.classList.remove(
+        "active"
+      );
+
+      voiceMode =
+        false;
+
+    };
+
+
+  recognition.onend =
+    () => {
+
+      recognitionActive =
+        false;
+
+      if (!voiceMode) {
+
+        voiceStatus.classList.remove(
+          "visible"
+        );
+
+        voiceCall.classList.remove(
+          "active"
+        );
+
+      }
+
+    };
+
+}
+
+
+/* START / STOP VOICE CALL */
+
+function startVoiceCall() {
+
+  if (!recognition) {
+
+    alert(
+      "Voice recognition is not supported by this browser. Try Chrome or Edge."
+    );
+
+    return;
+
+  }
+
+
+  voiceMode =
+    true;
+
+
+  try {
+
+    recognition.start();
+
+  } catch (error) {
+
+    console.error(
+      "Could not start voice recognition:",
+      error
+    );
+
+  }
+
+}
+
+
+function stopVoiceCall() {
+
+  voiceMode =
+    false;
+
+  voiceStatus.classList.remove(
+    "visible"
+  );
+
+  voiceCall.classList.remove(
+    "active"
+  );
+
+
+  if (
+    recognition &&
+    recognitionActive
+  ) {
+
+    try {
+
+      recognition.stop();
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+
+  }
+
+}
+
+
+voiceCall.addEventListener(
+  "click",
+  () => {
+
+    if (voiceMode) {
+
+      stopVoiceCall();
+
+    } else {
+
+      startVoiceCall();
+
+    }
+
+  }
+);
+
+
 /* SEND MESSAGE */
 
-async function sendMessage(text) {
+async function sendMessage(
+  text,
+  fromVoice = false
+) {
 
   text =
     text.trim();
@@ -1806,7 +2143,7 @@ async function sendMessage(text) {
 
   /*
     If there isn't an active chat,
-    make a fresh one.
+    create a completely fresh one.
   */
 
   if (!currentChat) {
@@ -1950,6 +2287,60 @@ async function sendMessage(text) {
     });
 
 
+    /*
+      If this message came from
+      Voice Call, automatically speak
+      Luna's response.
+    */
+
+    if (fromVoice) {
+
+      speakAsLuna(
+        answer
+      );
+
+    }
+
+
+    /*
+      Continue voice mode after Luna
+      finishes responding.
+
+      This means you can speak again
+      after Luna talks.
+    */
+
+    if (fromVoice && voiceMode) {
+
+      setTimeout(
+        () => {
+
+          if (
+            recognition &&
+            voiceMode &&
+            !recognitionActive
+          ) {
+
+            try {
+
+              recognition.start();
+
+            } catch (error) {
+
+              console.error(
+                error
+              );
+
+            }
+
+          }
+
+        },
+        500
+      );
+
+    }
+
   } catch (error) {
 
     console.error(
@@ -1965,6 +2356,31 @@ async function sendMessage(text) {
       .textContent =
         "Luna couldn't respond right now.";
 
+
+    if (fromVoice) {
+
+      voiceStatus.textContent =
+        "Voice call stopped.";
+
+      voiceMode =
+        false;
+
+      voiceCall.classList.remove(
+        "active"
+      );
+
+      setTimeout(
+        () => {
+
+          voiceStatus.classList.remove(
+            "visible"
+          );
+
+        },
+        1500
+      );
+
+    }
 
   } finally {
 
@@ -2048,19 +2464,20 @@ input.addEventListener(
 /* STARTUP */
 
 /*
-  IMPORTANT:
-  Do NOT automatically open the
-  previous chat.
+  Always start with a completely
+  fresh chat when the website opens.
 
-  Every time the website is opened,
-  Luna starts with a new conversation.
+  Previous chats remain in the sidebar
+  and can still be opened manually.
 */
 
 function loadInitialState() {
 
-  currentChat = null;
+  currentChat =
+    null;
 
-  conversation = [];
+  conversation =
+    [];
 
   renderSidebar();
 
@@ -2068,8 +2485,6 @@ function loadInitialState() {
 
 }
 
-
-/* START */
 
 loadInitialState();
 
