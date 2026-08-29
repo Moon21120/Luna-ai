@@ -291,6 +291,7 @@
       display: flex;
       flex-direction: column;
       background: #0b111a;
+      position: relative;
     }
 
     /* TOP BAR */
@@ -304,6 +305,8 @@
       align-items: center;
       padding: 0 25px;
       gap: 10px;
+      position: relative;
+      z-index: 20;
     }
 
     .model {
@@ -347,6 +350,133 @@
       border-color: #526987;
     }
 
+    /* =========================================================
+       MOON VOICE CALL ANIMATION
+       ========================================================= */
+
+    .moon-call-animation {
+      position: absolute;
+      z-index: 15;
+
+      left: 50%;
+      top: 50%;
+
+      transform:
+        translate(-50%, -50%)
+        scale(.8);
+
+      width: 190px;
+      height: 190px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      opacity: 0;
+      pointer-events: none;
+
+      transition:
+        opacity .5s ease,
+        transform .5s ease;
+    }
+
+    .moon-call-animation.visible {
+      opacity: 1;
+
+      transform:
+        translate(-50%, -50%)
+        scale(1);
+    }
+
+    .moon-glow {
+      position: absolute;
+
+      width: 170px;
+      height: 170px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(255, 255, 255, .13) 0%,
+          rgba(255, 255, 255, .06) 38%,
+          rgba(255, 255, 255, 0) 72%
+        );
+
+      filter: blur(7px);
+
+      animation:
+        moonGlow 3s ease-in-out infinite;
+    }
+
+    .moon-phase {
+      position: relative;
+
+      width: 115px;
+      height: 115px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 105px;
+      line-height: 1;
+
+      filter:
+        drop-shadow(
+          0 0 18px rgba(255,255,255,.28)
+        );
+
+      user-select: none;
+
+      animation:
+        moonFloat 3s ease-in-out infinite;
+    }
+
+    .moon-call-label {
+      position: absolute;
+
+      top: calc(100% + 18px);
+
+      color: #aab7c8;
+
+      font-size: 13px;
+      letter-spacing: .4px;
+
+      white-space: nowrap;
+
+      opacity: .9;
+    }
+
+    @keyframes moonGlow {
+
+      0%,
+      100% {
+        transform: scale(.9);
+        opacity: .65;
+      }
+
+      50% {
+        transform: scale(1.08);
+        opacity: 1;
+      }
+
+    }
+
+    @keyframes moonFloat {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-7px);
+      }
+
+    }
+
     /* CHAT */
 
     .chat {
@@ -356,6 +486,7 @@
       overflow-x: hidden;
       padding: 35px 25px 170px;
       -webkit-overflow-scrolling: touch;
+      position: relative;
     }
 
     .chat-inner {
@@ -689,6 +820,7 @@
       .message-box {
         max-width: 82%;
       }
+
     }
 
     /* MOBILE */
@@ -878,6 +1010,28 @@
         font-size: 9px;
         margin-top: 5px;
       }
+
+      .moon-call-animation {
+        width: 150px;
+        height: 150px;
+      }
+
+      .moon-glow {
+        width: 145px;
+        height: 145px;
+      }
+
+      .moon-phase {
+        width: 90px;
+        height: 90px;
+        font-size: 82px;
+      }
+
+      .moon-call-label {
+        font-size: 11px;
+        top: calc(100% + 12px);
+      }
+
     }
 
     @media (max-width: 380px) {
@@ -924,7 +1078,9 @@
       .voice-call span:last-child {
         display: none;
       }
+
     }
+
   </style>
 </head>
 
@@ -1058,6 +1214,29 @@
 
     </header>
 
+    <!-- MOON VOICE CALL ANIMATION -->
+
+    <div
+      class="moon-call-animation"
+      id="moonCallAnimation"
+      aria-hidden="true"
+    >
+
+      <div class="moon-glow"></div>
+
+      <div
+        class="moon-phase"
+        id="moonPhase"
+      >
+        🌑
+      </div>
+
+      <div class="moon-call-label">
+        Luna is listening...
+      </div>
+
+    </div>
+
     <section
       class="chat"
       id="chat"
@@ -1186,9 +1365,7 @@
 
 <script>
 
-/* =========================================================
-   STORAGE
-   ========================================================= */
+/* STORAGE */
 
 const STORAGE_KEY = "luna_chats";
 const MEMORY_KEY = "luna_memory";
@@ -1207,9 +1384,7 @@ let currentChat = null;
 let conversation = [];
 
 
-/* =========================================================
-   ELEMENTS
-   ========================================================= */
+/* ELEMENTS */
 
 const form =
   document.getElementById("form");
@@ -1247,10 +1422,107 @@ const voiceCall =
 const voiceStatus =
   document.getElementById("voiceStatus");
 
+const moonCallAnimation =
+  document.getElementById("moonCallAnimation");
+
+const moonPhase =
+  document.getElementById("moonPhase");
+
 
 /* =========================================================
-   MOBILE SIDEBAR
+   MOON PHASE ANIMATION
    ========================================================= */
+
+const moonPhases = [
+
+  "🌑", // New Moon
+  "🌒", // Waxing Crescent
+  "🌓", // First Quarter
+  "🌔", // Waxing Gibbous
+  "🌕", // Full Moon
+  "🌖", // Waning Gibbous
+  "🌗", // Last Quarter
+  "🌘"  // Waning Crescent
+
+];
+
+let moonPhaseIndex = 0;
+let moonPhaseTimer = null;
+
+
+function startMoonAnimation() {
+
+  stopMoonAnimation();
+
+  moonPhaseIndex = 0;
+
+  moonPhase.textContent =
+    moonPhases[moonPhaseIndex];
+
+  moonCallAnimation.classList.add(
+    "visible"
+  );
+
+  moonPhaseTimer =
+    setInterval(
+      () => {
+
+        moonPhaseIndex =
+          (
+            moonPhaseIndex + 1
+          ) %
+          moonPhases.length;
+
+        moonPhase.style.transform =
+          "scale(.82)";
+
+        setTimeout(
+          () => {
+
+            moonPhase.textContent =
+              moonPhases[moonPhaseIndex];
+
+            moonPhase.style.transform =
+              "scale(1)";
+
+          },
+          180
+        );
+
+      },
+      1200
+    );
+
+}
+
+
+function stopMoonAnimation() {
+
+  if (moonPhaseTimer) {
+
+    clearInterval(
+      moonPhaseTimer
+    );
+
+    moonPhaseTimer =
+      null;
+
+  }
+
+  moonCallAnimation.classList.remove(
+    "visible"
+  );
+
+  moonPhase.textContent =
+    "🌑";
+
+  moonPhase.style.transform =
+    "";
+
+}
+
+
+/* MOBILE SIDEBAR */
 
 function openMobileSidebar() {
 
@@ -1306,9 +1578,7 @@ sidebarOverlay.addEventListener(
 );
 
 
-/* =========================================================
-   STORAGE
-   ========================================================= */
+/* STORAGE */
 
 function saveChats() {
 
@@ -1330,9 +1600,7 @@ function saveMemory() {
 }
 
 
-/* =========================================================
-   CHAT CREATION
-   ========================================================= */
+/* CHAT CREATION */
 
 function createChat() {
 
@@ -1385,9 +1653,7 @@ function getCurrentChat() {
 }
 
 
-/* =========================================================
-   OPEN OLD CHAT
-   ========================================================= */
+/* OPEN OLD CHAT */
 
 function openChat(id) {
 
@@ -1424,9 +1690,7 @@ function openChat(id) {
 }
 
 
-/* =========================================================
-   DELETE CHAT
-   ========================================================= */
+/* DELETE CHAT */
 
 function deleteChat(id) {
 
@@ -1452,9 +1716,7 @@ function deleteChat(id) {
 }
 
 
-/* =========================================================
-   SIDEBAR
-   ========================================================= */
+/* SIDEBAR */
 
 function renderSidebar() {
 
@@ -1554,9 +1816,7 @@ function renderSidebar() {
 }
 
 
-/* =========================================================
-   CHAT OPTIONS MENU
-   ========================================================= */
+/* CHAT OPTIONS MENU */
 
 function showChatMenu(
   row,
@@ -1652,7 +1912,7 @@ function showChatMenu(
 
 
 /* =========================================================
-   MARKDOWN
+   SAFE MARKDOWN FORMATTER
    ========================================================= */
 
 function escapeHTML(text) {
@@ -1669,13 +1929,8 @@ function escapeHTML(text) {
 
 function formatMarkdown(text) {
 
-  if (
-    text === null ||
-    text === undefined
-  ) {
-
+  if (text === null || text === undefined) {
     return "";
-
   }
 
   let value =
@@ -1770,8 +2025,11 @@ function formatMarkdown(text) {
   value =
     value.replace(
       /(?:<li>.*?<\/li>\n?)+/g,
-      list =>
-        `<ul>${list}</ul>`
+      list => {
+
+        return `<ul>${list}</ul>`;
+
+      }
     );
 
 
@@ -1795,9 +2053,7 @@ function formatMarkdown(text) {
 }
 
 
-/* =========================================================
-   MESSAGES
-   ========================================================= */
+/* MESSAGES */
 
 function renderMessages() {
 
@@ -1870,9 +2126,7 @@ function addMessageElement(
     "avatar";
 
 
-  if (
-    role === "assistant"
-  ) {
+  if (role === "assistant") {
 
     avatar.classList.add(
       "luna-avatar"
@@ -1910,9 +2164,7 @@ function addMessageElement(
     "message-content";
 
 
-  if (
-    extraClass === "thinking"
-  ) {
+  if (extraClass === "thinking") {
 
     content.textContent =
       text;
@@ -1979,9 +2231,7 @@ function scrollToBottom() {
 }
 
 
-/* =========================================================
-   SAVE MESSAGE
-   ========================================================= */
+/* SAVE MESSAGE */
 
 function saveMessage(
   role,
@@ -2026,9 +2276,7 @@ function saveMessage(
 }
 
 
-/* =========================================================
-   MEMORY
-   ========================================================= */
+/* MEMORY */
 
 function buildMemoryForLuna() {
 
@@ -2070,16 +2318,15 @@ function speechSupported() {
 function getLunaVoice() {
 
   if (!speechSupported()) {
+
     return null;
+
   }
 
   const voices =
     window.speechSynthesis.getVoices();
 
-  if (
-    !voices ||
-    !voices.length
-  ) {
+  if (!voices || !voices.length) {
 
     return null;
 
@@ -2117,7 +2364,9 @@ function getLunaVoice() {
       );
 
     if (voice) {
+
       return voice;
+
     }
 
   }
@@ -2149,7 +2398,9 @@ function getLunaVoice() {
 function unlockSpeech() {
 
   if (!speechSupported()) {
+
     return false;
+
   }
 
   try {
@@ -2181,7 +2432,10 @@ function unlockSpeech() {
       getLunaVoice();
 
     if (voice) {
-      unlock.voice = voice;
+
+      unlock.voice =
+        voice;
+
     }
 
 
@@ -2191,6 +2445,34 @@ function unlockSpeech() {
 
     speechUnlocked =
       true;
+
+    setTimeout(
+      () => {
+
+        try {
+
+          if (
+            synth.speaking &&
+            synth.paused
+          ) {
+
+            synth.resume();
+
+          }
+
+        } catch (error) {
+
+          console.error(
+            "Speech resume error:",
+            error
+          );
+
+        }
+
+      },
+      100
+    );
+
 
     return true;
 
@@ -2227,7 +2509,6 @@ function splitSpeechText(text) {
 
 
   const chunks = [];
-
   let current = "";
 
 
@@ -2242,11 +2523,8 @@ function splitSpeechText(text) {
 
 
     if (
-      (
-        current +
-        " " +
-        trimmed
-      ).trim().length <= 220
+      (current + " " + trimmed).trim().length
+      <= 220
     ) {
 
       current =
@@ -2260,29 +2538,27 @@ function splitSpeechText(text) {
     } else {
 
       if (current) {
-        chunks.push(current);
+
+        chunks.push(
+          current
+        );
+
       }
 
 
-      if (
-        trimmed.length > 220
-      ) {
+      if (trimmed.length > 220) {
 
         const words =
           trimmed.split(" ");
 
         let part = "";
 
-
         words.forEach(
           word => {
 
             if (
-              (
-                part +
-                " " +
-                word
-              ).trim().length <= 220
+              (part + " " + word).trim().length
+              <= 220
             ) {
 
               part =
@@ -2296,7 +2572,11 @@ function splitSpeechText(text) {
             } else {
 
               if (part) {
-                chunks.push(part);
+
+                chunks.push(
+                  part
+                );
+
               }
 
               part =
@@ -2307,11 +2587,16 @@ function splitSpeechText(text) {
           }
         );
 
-
         if (part) {
-          current = part;
+
+          current =
+            part;
+
         } else {
-          current = "";
+
+          current =
+            "";
+
         }
 
       } else {
@@ -2327,7 +2612,11 @@ function splitSpeechText(text) {
 
 
   if (current) {
-    chunks.push(current);
+
+    chunks.push(
+      current
+    );
+
   }
 
 
@@ -2335,10 +2624,6 @@ function splitSpeechText(text) {
 
 }
 
-
-/* =========================================================
-   STOP LUNA SPEAKING
-   ========================================================= */
 
 function stopLunaSpeaking() {
 
@@ -2368,12 +2653,6 @@ function stopLunaSpeaking() {
 }
 
 
-/* =========================================================
-   SPEAK NEXT CHUNK
-   IMPORTANT:
-   MICROPHONE STAYS OFF WHILE LUNA SPEAKS
-   ========================================================= */
-
 function speakNextChunk(
   generation
 ) {
@@ -2395,16 +2674,7 @@ function speakNextChunk(
     speechPlaying =
       false;
 
-    voiceStatus.textContent =
-      "🎙 Listening again...";
 
-    /*
-     * DO NOT immediately listen.
-     *
-     * Wait until Luna has completely
-     * stopped speaking, then give the
-     * microphone a short settling period.
-     */
     if (
       voiceMode &&
       recognition &&
@@ -2416,17 +2686,27 @@ function speakNextChunk(
 
           if (
             voiceMode &&
-            !speechPlaying &&
             recognition &&
             !recognitionActive
           ) {
 
-            startRecognitionSafely();
+            try {
+
+              recognition.start();
+
+            } catch (error) {
+
+              console.error(
+                "Could not restart microphone:",
+                error
+              );
+
+            }
 
           }
 
         },
-        500
+        350
       );
 
     }
@@ -2439,7 +2719,6 @@ function speakNextChunk(
   const text =
     speechQueue.shift();
 
-
   const utterance =
     new SpeechSynthesisUtterance(
       text
@@ -2448,7 +2727,6 @@ function speakNextChunk(
 
   const voice =
     getLunaVoice();
-
 
   if (voice) {
 
@@ -2478,13 +2756,6 @@ function speakNextChunk(
 
   utterance.onstart =
     () => {
-
-      /*
-       * HARD SAFETY:
-       * Make absolutely sure recognition
-       * is not running while Luna speaks.
-       */
-      stopRecognitionForLuna();
 
       voiceStatus.textContent =
         "🔊 Luna is speaking...";
@@ -2570,6 +2841,14 @@ function speakNextChunk(
 
   try {
 
+    if (
+      window.speechSynthesis.paused
+    ) {
+
+      window.speechSynthesis.resume();
+
+    }
+
     window.speechSynthesis.speak(
       utterance
     );
@@ -2603,15 +2882,11 @@ function speakAsLuna(text) {
 
 
   if (!speechUnlocked) {
+
     unlockSpeech();
+
   }
 
-
-  /*
-   * Stop the microphone BEFORE
-   * starting Luna's voice.
-   */
-  stopRecognitionForLuna();
 
   stopLunaSpeaking();
 
@@ -2621,9 +2896,10 @@ function speakAsLuna(text) {
       text
     );
 
-
   if (!chunks.length) {
+
     return;
+
   }
 
 
@@ -2632,7 +2908,6 @@ function speakAsLuna(text) {
 
   speechPlaying =
     true;
-
 
   const generation =
     speechGeneration;
@@ -2667,7 +2942,46 @@ if (speechSupported()) {
 
     };
 
+
+  setTimeout(
+    () => {
+
+      getLunaVoice();
+
+    },
+    100
+  );
+
 }
+
+
+setInterval(
+  () => {
+
+    if (
+      speechSupported() &&
+      window.speechSynthesis.speaking &&
+      window.speechSynthesis.paused
+    ) {
+
+      try {
+
+        window.speechSynthesis.resume();
+
+      } catch (error) {
+
+        console.error(
+          "Speech keep-alive error:",
+          error
+        );
+
+      }
+
+    }
+
+  },
+  1000
+);
 
 
 /* =========================================================
@@ -2678,7 +2992,6 @@ const SpeechRecognition =
   window.SpeechRecognition ||
   window.webkitSpeechRecognition;
 
-
 let recognition = null;
 
 let voiceMode = false;
@@ -2686,71 +2999,19 @@ let voiceMode = false;
 let recognitionActive = false;
 
 
-/*
- * The transcript is accumulated while
- * the user talks.
- */
-let voiceTranscript = "";
-
-
-/*
- * This records the last time Chrome
- * heard speech.
- */
-let lastSpeechTime = 0;
-
-
-/*
- * Luna waits 3 seconds after the
- * user's last detected speech.
- */
-const VOICE_SILENCE_DELAY =
-  3000;
-
-
-/*
- * Prevent multiple send operations.
- */
-let voiceSending = false;
-
-
-/*
- * Timer that checks whether the user
- * has been silent for 3 seconds.
- */
-let silenceTimer = null;
-
-
 if (SpeechRecognition) {
 
   recognition =
     new SpeechRecognition();
 
-
-  /*
-   * IMPORTANT:
-   * Continuous recognition lets the user
-   * speak naturally instead of ending
-   * after one recognition result.
-   */
   recognition.continuous =
-    true;
+    false;
 
-
-  /*
-   * Interim results let us know that
-   * the user is still talking.
-   */
   recognition.interimResults =
-    true;
-
+    false;
 
   recognition.lang =
     "en-US";
-
-
-  recognition.maxAlternatives =
-    1;
 
 
   recognition.onstart =
@@ -2767,13 +3028,8 @@ if (SpeechRecognition) {
         "visible"
       );
 
-
-      if (!speechPlaying) {
-
-        voiceStatus.textContent =
-          "🎙 Listening...";
-
-      }
+      voiceStatus.textContent =
+        "🎙 Listening...";
 
     };
 
@@ -2781,83 +3037,29 @@ if (SpeechRecognition) {
   recognition.onresult =
     event => {
 
-      /*
-       * NEVER process microphone input
-       * while Luna is speaking.
-       *
-       * This is an extra protection
-       * against speaker echo.
-       */
-      if (speechPlaying) {
-        return;
-      }
+      const transcript =
+        event
+          .results[0][0]
+          .transcript
+          .trim();
 
 
-      let newFinalText = "";
-
-
-      for (
-        let i = event.resultIndex;
-        i < event.results.length;
-        i++
-      ) {
-
-        const result =
-          event.results[i];
-
-
-        const transcript =
-          result[0]
-            .transcript
-            .trim();
-
-
-        if (!transcript) {
-          continue;
-        }
-
-
-        /*
-         * ANY recognized speech resets
-         * the 3-second silence countdown.
-         */
-        lastSpeechTime =
-          Date.now();
-
-
-        if (result.isFinal) {
-
-          newFinalText +=
-            (
-              newFinalText
-                ? " "
-                : ""
-            ) +
-            transcript;
-
-        }
-
-      }
-
-
-      if (newFinalText) {
-
-        voiceTranscript =
-          (
-            voiceTranscript
-              ? voiceTranscript + " "
-              : ""
-          ) +
-          newFinalText;
-
-      }
+      recognitionActive =
+        false;
 
 
       voiceStatus.textContent =
-        "🎙 Listening...";
+        "Luna is thinking...";
 
 
-      restartSilenceTimer();
+      if (transcript) {
+
+        sendMessage(
+          transcript,
+          true
+        );
+
+      }
 
     };
 
@@ -2870,32 +3072,43 @@ if (SpeechRecognition) {
         event.error
       );
 
-
       recognitionActive =
         false;
 
 
-      /*
-       * These errors are recoverable.
-       */
       if (
-        event.error === "no-speech" ||
-        event.error === "aborted"
+        event.error === "no-speech"
       ) {
 
-        if (
-          voiceMode &&
-          !speechPlaying &&
-          !voiceSending
-        ) {
+        if (voiceMode) {
+
+          voiceStatus.textContent =
+            "🎙 Didn't hear you. Listening again...";
 
           setTimeout(
             () => {
 
-              startRecognitionSafely();
+              if (
+                voiceMode &&
+                !recognitionActive
+              ) {
+
+                try {
+
+                  recognition.start();
+
+                } catch (error) {
+
+                  console.error(
+                    error
+                  );
+
+                }
+
+              }
 
             },
-            300
+            500
           );
 
         }
@@ -2905,9 +3118,9 @@ if (SpeechRecognition) {
       }
 
 
-      voiceStatus.textContent =
-        "Microphone error. Try again.";
-
+      voiceStatus.classList.remove(
+        "visible"
+      );
 
       voiceCall.classList.remove(
         "active"
@@ -2915,6 +3128,8 @@ if (SpeechRecognition) {
 
       voiceMode =
         false;
+
+      stopMoonAnimation();
 
     };
 
@@ -2925,30 +3140,7 @@ if (SpeechRecognition) {
       recognitionActive =
         false;
 
-
-      /*
-       * Do NOT send the message just
-       * because recognition ended.
-       *
-       * Chrome can end recognition on
-       * its own. We restart it instead.
-       */
-      if (
-        voiceMode &&
-        !speechPlaying &&
-        !voiceSending
-      ) {
-
-        setTimeout(
-          () => {
-
-            startRecognitionSafely();
-
-          },
-          300
-        );
-
-      } else if (!voiceMode) {
+      if (!voiceMode) {
 
         voiceStatus.classList.remove(
           "visible"
@@ -2958,252 +3150,11 @@ if (SpeechRecognition) {
           "active"
         );
 
+        stopMoonAnimation();
+
       }
 
     };
-
-}
-
-
-/* =========================================================
-   SAFE RECOGNITION START
-   ========================================================= */
-
-function startRecognitionSafely() {
-
-  if (
-    !recognition ||
-    !voiceMode ||
-    speechPlaying ||
-    recognitionActive ||
-    voiceSending
-  ) {
-
-    return;
-
-  }
-
-
-  try {
-
-    recognition.start();
-
-  } catch (error) {
-
-    /*
-     * "already started" is harmless.
-     */
-    if (
-      !String(error.message)
-        .toLowerCase()
-        .includes("already started")
-    ) {
-
-      console.error(
-        "Could not start recognition:",
-        error
-      );
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   STOP RECOGNITION WHILE LUNA SPEAKS
-   ========================================================= */
-
-function stopRecognitionForLuna() {
-
-  /*
-   * Stop the silence timer too.
-   */
-  if (silenceTimer) {
-
-    clearTimeout(
-      silenceTimer
-    );
-
-    silenceTimer =
-      null;
-
-  }
-
-
-  if (
-    recognition &&
-    recognitionActive
-  ) {
-
-    try {
-
-      recognition.stop();
-
-    } catch (error) {
-
-      console.error(
-        "Could not stop recognition:",
-        error
-      );
-
-    }
-
-  }
-
-
-  recognitionActive =
-    false;
-
-}
-
-
-/* =========================================================
-   3-SECOND SILENCE TIMER
-   ========================================================= */
-
-function restartSilenceTimer() {
-
-  if (silenceTimer) {
-
-    clearTimeout(
-      silenceTimer
-    );
-
-  }
-
-
-  silenceTimer =
-    setTimeout(
-      checkForVoiceSilence,
-      VOICE_SILENCE_DELAY
-    );
-
-}
-
-
-function checkForVoiceSilence() {
-
-  if (
-    !voiceMode ||
-    speechPlaying ||
-    voiceSending
-  ) {
-
-    return;
-
-  }
-
-
-  const silenceDuration =
-    Date.now() -
-    lastSpeechTime;
-
-
-  /*
-   * If the user has been silent for
-   * at least 3 seconds, send it.
-   */
-  if (
-    voiceTranscript &&
-    silenceDuration >=
-      VOICE_SILENCE_DELAY
-  ) {
-
-    const transcript =
-      voiceTranscript
-        .trim();
-
-
-    voiceTranscript =
-      "";
-
-    silenceTimer =
-      null;
-
-
-    if (transcript) {
-
-      sendVoiceMessage(
-        transcript
-      );
-
-    }
-
-    return;
-
-  }
-
-
-  /*
-   * Not quite 3 seconds yet.
-   * Check again.
-   */
-  const remaining =
-    Math.max(
-      100,
-      VOICE_SILENCE_DELAY -
-      silenceDuration
-    );
-
-
-  silenceTimer =
-    setTimeout(
-      checkForVoiceSilence,
-      remaining
-    );
-
-}
-
-
-/* =========================================================
-   SEND VOICE MESSAGE
-   ========================================================= */
-
-async function sendVoiceMessage(
-  transcript
-) {
-
-  if (
-    voiceSending ||
-    !transcript
-  ) {
-
-    return;
-
-  }
-
-
-  voiceSending =
-    true;
-
-
-  /*
-   * Stop recognition before sending
-   * the request so the microphone cannot
-   * capture anything while Luna thinks.
-   */
-  stopRecognitionForLuna();
-
-
-  voiceStatus.textContent =
-    "Luna is thinking...";
-
-
-  try {
-
-    await sendMessage(
-      transcript,
-      true
-    );
-
-  } finally {
-
-    voiceSending =
-      false;
-
-  }
 
 }
 
@@ -3231,16 +3182,6 @@ function startVoiceCall() {
   voiceMode =
     true;
 
-  voiceTranscript =
-    "";
-
-  lastSpeechTime =
-    0;
-
-  voiceSending =
-    false;
-
-
   voiceCall.classList.add(
     "active"
   );
@@ -3253,14 +3194,23 @@ function startVoiceCall() {
     "🎙 Listening...";
 
 
-  /*
-   * Make sure Luna isn't currently
-   * speaking when we start listening.
-   */
-  stopLunaSpeaking();
+  /* START MOON ANIMATION */
+
+  startMoonAnimation();
 
 
-  startRecognitionSafely();
+  try {
+
+    recognition.start();
+
+  } catch (error) {
+
+    console.error(
+      "Could not start voice recognition:",
+      error
+    );
+
+  }
 
 }
 
@@ -3269,25 +3219,6 @@ function stopVoiceCall() {
 
   voiceMode =
     false;
-
-  voiceTranscript =
-    "";
-
-  voiceSending =
-    false;
-
-
-  if (silenceTimer) {
-
-    clearTimeout(
-      silenceTimer
-    );
-
-    silenceTimer =
-      null;
-
-  }
-
 
   voiceStatus.classList.remove(
     "visible"
@@ -3298,9 +3229,32 @@ function stopVoiceCall() {
   );
 
 
-  stopRecognitionForLuna();
+  /* STOP MOON ANIMATION */
+
+  stopMoonAnimation();
+
 
   stopLunaSpeaking();
+
+
+  if (
+    recognition &&
+    recognitionActive
+  ) {
+
+    try {
+
+      recognition.stop();
+
+    } catch (error) {
+
+      console.error(
+        error
+      );
+
+    }
+
+  }
 
 }
 
@@ -3336,17 +3290,6 @@ async function sendMessage(
     text.trim();
 
   if (!text) return;
-
-
-  /*
-   * If this came from voice, the
-   * microphone MUST already be stopped.
-   */
-  if (fromVoice) {
-
-    stopRecognitionForLuna();
-
-  }
 
 
   if (!currentChat) {
@@ -3490,12 +3433,6 @@ async function sendMessage(
     });
 
 
-    /*
-     * Voice mode:
-     *
-     * The microphone remains OFF while
-     * Luna speaks.
-     */
     if (fromVoice) {
 
       speakAsLuna(
@@ -3535,6 +3472,8 @@ async function sendMessage(
         "active"
       );
 
+      stopMoonAnimation();
+
 
       setTimeout(
         () => {
@@ -3566,9 +3505,7 @@ async function sendMessage(
 }
 
 
-/* =========================================================
-   QUICK MESSAGE
-   ========================================================= */
+/* QUICK MESSAGE */
 
 function quickMessage(text) {
 
@@ -3579,9 +3516,7 @@ function quickMessage(text) {
 }
 
 
-/* =========================================================
-   FORM
-   ========================================================= */
+/* FORM */
 
 form.addEventListener(
   "submit",
@@ -3597,9 +3532,7 @@ form.addEventListener(
 );
 
 
-/* =========================================================
-   ENTER TO SEND
-   ========================================================= */
+/* ENTER TO SEND */
 
 input.addEventListener(
   "keydown",
@@ -3620,9 +3553,7 @@ input.addEventListener(
 );
 
 
-/* =========================================================
-   AUTO RESIZE
-   ========================================================= */
+/* AUTO RESIZE */
 
 input.addEventListener(
   "input",
@@ -3641,9 +3572,7 @@ input.addEventListener(
 );
 
 
-/* =========================================================
-   STARTUP
-   ========================================================= */
+/* STARTUP */
 
 function loadInitialState() {
 
