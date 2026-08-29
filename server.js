@@ -73,10 +73,6 @@ const LUNA_PERSONALITY = [
 ].join("\n");
 
 
-/* =========================================================
-   WEB SEARCH
-   ========================================================= */
-
 async function searchWeb(query, apiKey) {
   console.log("WEB SEARCH STARTED:", query);
 
@@ -84,12 +80,10 @@ async function searchWeb(query, apiKey) {
     "https://ollama.com/api/web_search",
     {
       method: "POST",
-
       headers: {
         "Authorization": "Bearer " + apiKey,
         "Content-Type": "application/json"
       },
-
       body: JSON.stringify({
         query: query
       })
@@ -121,20 +115,11 @@ async function searchWeb(query, apiKey) {
     );
   }
 
-  console.log(
-    "WEB SEARCH SUCCESS:",
-    Array.isArray(data.results)
-      ? data.results.length + " results"
-      : "results returned"
-  );
+  console.log("WEB SEARCH SUCCESS");
 
   return data;
 }
 
-
-/* =========================================================
-   FORMAT SEARCH RESULTS
-   ========================================================= */
 
 function formatSearchResults(searchData) {
   if (!searchData) {
@@ -193,10 +178,6 @@ function formatSearchResults(searchData) {
 }
 
 
-/* =========================================================
-   CHAT API
-   ========================================================= */
-
 app.post("/api/chat", async (req, res) => {
   try {
     const apiKey = process.env.OLLAMA_API_KEY;
@@ -220,22 +201,10 @@ app.post("/api/chat", async (req, res) => {
       req.body.thinkHarder === "true" ||
       req.body.thinkHarder === 1;
 
-
-    /*
-     * IMPORTANT:
-     *
-     * Your index.html sends:
-     *
-     *     webSearch: webSearchEnabled
-     *
-     * So the server MUST read req.body.webSearch.
-     */
-
-    const webSearchEnabled =
-      req.body.webSearch === true ||
-      req.body.webSearch === "true" ||
-      req.body.webSearch === 1;
-
+    const searchWebEnabled =
+      req.body.searchWeb === true ||
+      req.body.searchWeb === "true" ||
+      req.body.searchWeb === 1;
 
     if (messages.length === 0) {
       return res.status(400).json({
@@ -244,65 +213,38 @@ app.post("/api/chat", async (req, res) => {
     }
 
 
-    /* =======================================================
-       MEMORY
-       ======================================================= */
+    /*
+     * MEMORY
+     */
 
     let memoryContext = "";
 
     if (memory.length > 0) {
       const recentMemory = memory.slice(-30);
 
-      const formattedMemory = recentMemory
-        .map(function(item) {
-          if (
-            item &&
-            Array.isArray(item.messages)
-          ) {
-            return item.messages
-              .map(function(message) {
-                return (
-                  (message.role || "user") +
-                  ": " +
-                  (message.content || "")
-                );
-              })
-              .join("\n");
-          }
-
-          return [
-            item?.title
-              ? "Memory: " + item.title
-              : "",
-            item?.user
-              ? "User: " + item.user
-              : "",
-            item?.luna
-              ? "Luna: " + item.luna
-              : ""
-          ]
-            .filter(Boolean)
-            .join("\n");
-        })
-        .filter(Boolean)
-        .join("\n\n");
-
-      if (formattedMemory) {
-        memoryContext = [
-          "",
-          "SAVED MEMORY FROM PREVIOUS CONVERSATIONS:",
-          "",
-          formattedMemory,
-          "",
-          "END SAVED MEMORY."
-        ].join("\n");
-      }
+      memoryContext = [
+        "",
+        "SAVED MEMORY FROM PREVIOUS CONVERSATIONS:",
+        "",
+        recentMemory
+          .map(function(item) {
+            return (
+              "User: " +
+              (item.user || "") +
+              "\nLuna: " +
+              (item.luna || "")
+            );
+          })
+          .join("\n\n"),
+        "",
+        "END SAVED MEMORY."
+      ].join("\n");
     }
 
 
-    /* =======================================================
-       CURRENT USER MESSAGE
-       ======================================================= */
+    /*
+     * CURRENT USER MESSAGE
+     */
 
     const latestUserMessage =
       [...messages]
@@ -315,40 +257,27 @@ app.post("/api/chat", async (req, res) => {
       latestUserMessage?.content || "";
 
 
-    /* =======================================================
-       WEB SEARCH
-       ======================================================= */
+    /*
+     * WEB SEARCH
+     */
 
     let webContext = "";
 
-    if (
-      webSearchEnabled &&
-      userQuery.trim()
-    ) {
+    if (searchWebEnabled && userQuery.trim()) {
       try {
-        console.log(
-          "WEB SEARCH TOGGLE: ON"
-        );
+        console.log("WEB SEARCH TOGGLE: ON");
 
-        console.log(
-          "WEB SEARCH QUERY:",
-          userQuery
+        const searchData = await searchWeb(
+          userQuery,
+          apiKey
         );
-
-        const searchData =
-          await searchWeb(
-            userQuery,
-            apiKey
-          );
 
         webContext =
-          formatSearchResults(
-            searchData
-          );
+          formatSearchResults(searchData);
 
       } catch (searchError) {
         console.error(
-          "WEB SEARCH FAILED:",
+          "Web search failed:",
           searchError
         );
 
@@ -356,21 +285,17 @@ app.post("/api/chat", async (req, res) => {
           "",
           "WEB SEARCH:",
           "The requested web search could not be completed.",
-          "Do not pretend that search results were found.",
-          "Answer using your existing knowledge instead."
+          "Do not pretend that search results were found."
         ].join("\n");
       }
-
     } else {
-      console.log(
-        "WEB SEARCH TOGGLE: OFF"
-      );
+      console.log("WEB SEARCH TOGGLE: OFF");
     }
 
 
-    /* =======================================================
-       THINK HARDER
-       ======================================================= */
+    /*
+     * THINK HARDER
+     */
 
     let thinkingContext = "";
 
@@ -387,21 +312,15 @@ app.post("/api/chat", async (req, res) => {
     }
 
 
-    console.log(
-      "REQUEST OPTIONS:",
-      {
-        thinkHarder:
-          thinkHarder,
-
-        webSearch:
-          webSearchEnabled
-      }
-    );
+    console.log("REQUEST OPTIONS:", {
+      thinkHarder: thinkHarder,
+      searchWeb: searchWebEnabled
+    });
 
 
-    /* =======================================================
-       OLLAMA CHAT
-       ======================================================= */
+    /*
+     * OLLAMA CHAT
+     */
 
     const response = await fetch(
       "https://ollama.com/api/chat",
@@ -409,21 +328,16 @@ app.post("/api/chat", async (req, res) => {
         method: "POST",
 
         headers: {
-          "Authorization":
-            "Bearer " + apiKey,
-
-          "Content-Type":
-            "application/json"
+          "Authorization": "Bearer " + apiKey,
+          "Content-Type": "application/json"
         },
 
         body: JSON.stringify({
-          model:
-            "gpt-oss:20b-cloud",
+          model: "gpt-oss:20b-cloud",
 
           messages: [
             {
               role: "system",
-
               content:
                 LUNA_PERSONALITY +
                 memoryContext +
@@ -434,24 +348,20 @@ app.post("/api/chat", async (req, res) => {
             ...messages
           ],
 
-          think:
-            thinkHarder,
+          think: thinkHarder,
 
-          stream:
-            false
+          stream: false
         })
       }
     );
 
 
-    const rawText =
-      await response.text();
+    const rawText = await response.text();
 
     let data;
 
     try {
-      data =
-        JSON.parse(rawText);
+      data = JSON.parse(rawText);
     } catch {
       data = {
         error:
@@ -462,14 +372,9 @@ app.post("/api/chat", async (req, res) => {
 
 
     if (!response.ok) {
-      console.error(
-        "OLLAMA ERROR:",
-        data
-      );
+      console.error("OLLAMA ERROR:", data);
 
-      return res.status(
-        response.status
-      ).json({
+      return res.status(response.status).json({
         error:
           data.error ||
           "Ollama returned HTTP " +
@@ -479,9 +384,7 @@ app.post("/api/chat", async (req, res) => {
     }
 
 
-    console.log(
-      "OLLAMA RESPONSE SUCCESS"
-    );
+    console.log("OLLAMA RESPONSE SUCCESS");
 
     return res.json(data);
 
@@ -500,47 +403,35 @@ app.post("/api/chat", async (req, res) => {
 });
 
 
-/* =========================================================
-   HEALTH CHECK
-   ========================================================= */
+/*
+ * HEALTH CHECK
+ */
 
-app.get(
-  "/api/health",
-  function(req, res) {
-    res.json({
-      status: "online",
-      name: "Luna AI"
-    });
-  }
-);
+app.get("/api/health", function(req, res) {
+  res.json({
+    status: "online",
+    name: "Luna AI"
+  });
+});
 
 
-/* =========================================================
-   HOME
-   ========================================================= */
+/*
+ * HOME
+ */
 
-app.get(
-  "/",
-  function(req, res) {
-    res.sendFile(
-      process.cwd() +
-      "/index.html"
-    );
-  }
-);
+app.get("/", function(req, res) {
+  res.sendFile(
+    process.cwd() + "/index.html"
+  );
+});
 
 
-/* =========================================================
-   START SERVER
-   ========================================================= */
+/*
+ * START SERVER
+ */
 
-app.listen(
-  PORT,
-  function() {
-    console.log(
-      "Luna AI running on port " +
-      PORT
-    );
-  }
-);
-```
+app.listen(PORT, function() {
+  console.log(
+    "Luna AI running on port " + PORT
+  );
+});
