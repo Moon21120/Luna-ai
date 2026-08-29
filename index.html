@@ -322,6 +322,8 @@
       display: flex;
       align-items: center;
       gap: 7px;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     .voice-call:hover {
@@ -829,14 +831,10 @@
 
 <div class="app">
 
-  <!-- MOBILE SIDEBAR BACKDROP -->
-
   <div
     class="sidebar-overlay"
     id="sidebarOverlay"
   ></div>
-
-  <!-- SIDEBAR -->
 
   <aside
     class="sidebar"
@@ -915,8 +913,6 @@
 
   </aside>
 
-  <!-- MAIN -->
-
   <main class="main">
 
     <header class="topbar">
@@ -942,8 +938,6 @@
 
       </div>
 
-      <!-- VOICE CALL -->
-
       <button
         class="voice-call"
         id="voiceCall"
@@ -955,8 +949,6 @@
       </button>
 
     </header>
-
-    <!-- CHAT -->
 
     <section
       class="chat"
@@ -1037,8 +1029,6 @@
       </div>
 
     </section>
-
-    <!-- COMPOSER -->
 
     <div class="composer-area">
 
@@ -1369,8 +1359,6 @@ function renderSidebar() {
         );
 
 
-      /* CHAT BUTTON */
-
       const button =
         document.createElement(
           "button"
@@ -1387,8 +1375,6 @@ function renderSidebar() {
         () =>
           openChat(chat.id);
 
-
-      /* THREE DOT BUTTON */
 
       const options =
         document.createElement(
@@ -1465,8 +1451,6 @@ function showChatMenu(
     "chat-menu";
 
 
-  /* DELETE ONLY */
-
   const deleteButton =
     document.createElement(
       "button"
@@ -1510,8 +1494,6 @@ function showChatMenu(
     menu
   );
 
-
-  /* CLOSE WHEN CLICKING ELSEWHERE */
 
   setTimeout(
     () => {
@@ -1748,38 +1730,55 @@ function buildMemoryForLuna() {
 }
 
 
-/* SPEECH SYNTHESIS */
+/* =========================================================
+   MOBILE-SAFE SPEECH SYNTHESIS
+   ========================================================= */
+
+let speechUnlocked = false;
+let speechQueue = [];
+let speechPlaying = false;
+let speechGeneration = 0;
+
 
 /*
-  Uses the browser's built-in voices.
-  No API key or separate voice service
-  is required.
+  Check whether the browser supports speech.
+*/
+
+function speechSupported() {
+
+  return (
+    "speechSynthesis" in window &&
+    "SpeechSynthesisUtterance" in window
+  );
+
+}
+
+
+/*
+  Get the best Luna voice.
+
+  Mobile browsers sometimes return an empty voice
+  list initially, so this function is intentionally
+  called multiple times.
 */
 
 function getLunaVoice() {
 
-  if (
-    !("speechSynthesis" in window)
-  ) {
+  if (!speechSupported()) {
 
     return null;
 
   }
 
   const voices =
-    speechSynthesis.getVoices();
+    window.speechSynthesis.getVoices();
 
-  if (!voices.length) {
+  if (!voices || !voices.length) {
 
     return null;
 
   }
 
-
-  /*
-    Prefer an English female-sounding
-    browser voice when available.
-  */
 
   const preferredNames = [
 
@@ -1791,7 +1790,8 @@ function getLunaVoice() {
     "Moira",
     "Ava",
     "Jenny",
-    "Aria"
+    "Aria",
+    "Google US English"
 
   ];
 
@@ -1819,11 +1819,15 @@ function getLunaVoice() {
   }
 
 
-  /*
-    Otherwise choose an English voice.
-  */
-
   return (
+    voices.find(
+      voice =>
+        voice.lang &&
+        voice.lang
+          .toLowerCase()
+          .startsWith("en-us")
+    ) ||
+
     voices.find(
       voice =>
         voice.lang &&
@@ -1831,29 +1835,391 @@ function getLunaVoice() {
           .toLowerCase()
           .startsWith("en")
     ) ||
+
     voices[0]
   );
 
 }
 
 
-function speakAsLuna(text) {
+/*
+  MOBILE SPEECH UNLOCK
+
+  This is the important part.
+
+  The user taps Voice Call, and immediately
+  we perform a tiny speech operation while
+  the browser still considers the action
+  user-initiated.
+
+  This helps Safari/iOS and some Android
+  browsers allow later speech.
+*/
+
+function unlockSpeech() {
+
+  if (!speechSupported()) {
+
+    return false;
+
+  }
+
+  try {
+
+    const synth =
+      window.speechSynthesis;
+
+    synth.cancel();
+
+    const unlock =
+      new SpeechSynthesisUtterance(
+        " "
+      );
+
+    unlock.volume =
+      0.01;
+
+    unlock.rate =
+      10;
+
+    unlock.pitch =
+      1;
+
+    unlock.lang =
+      "en-US";
+
+
+    const voice =
+      getLunaVoice();
+
+    if (voice) {
+
+      unlock.voice =
+        voice;
+
+    }
+
+
+    synth.speak(
+      unlock
+    );
+
+    speechUnlocked =
+      true;
+
+    /*
+      Some mobile browsers pause speech
+      automatically. Resume it shortly after.
+    */
+
+    setTimeout(
+      () => {
+
+        try {
+
+          if (
+            synth.speaking &&
+            synth.paused
+          ) {
+
+            synth.resume();
+
+          }
+
+        } catch (error) {
+
+          console.error(
+            "Speech resume error:",
+            error
+          );
+
+        }
+
+      },
+      100
+    );
+
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "Speech unlock failed:",
+      error
+    );
+
+    return false;
+
+  }
+
+}
+
+
+/*
+  Split Luna's answer into manageable chunks.
+
+  Mobile speech engines are much more reliable
+  with shorter utterances.
+*/
+
+function splitSpeechText(text) {
+
+  if (!text) return [];
+
+  const clean =
+    String(text)
+      .replace(/\s+/g, " ")
+      .trim();
+
+  if (!clean) return [];
+
+
+  /*
+    Split at sentence boundaries first.
+  */
+
+  const sentences =
+    clean.match(
+      /[^.!?]+[.!?]+|[^.!?]+$/g
+    ) || [clean];
+
+
+  const chunks = [];
+  let current = "";
+
+
+  for (
+    const sentence of sentences
+  ) {
+
+    const trimmed =
+      sentence.trim();
+
+    if (!trimmed) continue;
+
+
+    if (
+      (current + " " + trimmed).trim().length
+      <= 220
+    ) {
+
+      current =
+        (
+          current
+            ? current + " "
+            : ""
+        ) +
+        trimmed;
+
+    } else {
+
+      if (current) {
+
+        chunks.push(
+          current
+        );
+
+      }
+
+      /*
+        If one sentence is extremely long,
+        split it by words.
+      */
+
+      if (trimmed.length > 220) {
+
+        const words =
+          trimmed.split(" ");
+
+        let part = "";
+
+        words.forEach(
+          word => {
+
+            if (
+              (part + " " + word).trim().length
+              <= 220
+            ) {
+
+              part =
+                (
+                  part
+                    ? part + " "
+                    : ""
+                ) +
+                word;
+
+            } else {
+
+              if (part) {
+
+                chunks.push(
+                  part
+                );
+
+              }
+
+              part =
+                word;
+
+            }
+
+          }
+        );
+
+        if (part) {
+
+          current =
+            part;
+
+        } else {
+
+          current =
+            "";
+
+        }
+
+      } else {
+
+        current =
+          trimmed;
+
+      }
+
+    }
+
+  }
+
+
+  if (current) {
+
+    chunks.push(
+      current
+    );
+
+  }
+
+
+  return chunks;
+
+}
+
+
+/*
+  Stop Luna speaking.
+*/
+
+function stopLunaSpeaking() {
+
+  speechGeneration++;
+
+  speechQueue = [];
+
+  speechPlaying = false;
+
+  if (speechSupported()) {
+
+    try {
+
+      window.speechSynthesis.cancel();
+
+    } catch (error) {
+
+      console.error(
+        "Could not stop speech:",
+        error
+      );
+
+    }
+
+  }
+
+}
+
+
+/*
+  Speak one chunk at a time.
+
+  The next chunk starts from onend instead
+  of trying to speak everything simultaneously.
+*/
+
+function speakNextChunk(
+  generation
+) {
 
   if (
-    !("speechSynthesis" in window)
+    generation !== speechGeneration
   ) {
+
+    speechPlaying =
+      false;
 
     return;
 
   }
 
-  speechSynthesis.cancel();
 
+  if (!speechQueue.length) {
+
+    speechPlaying =
+      false;
+
+    /*
+      Only restart listening AFTER
+      Luna has completely finished speaking.
+    */
+
+    if (
+      voiceMode &&
+      recognition &&
+      !recognitionActive
+    ) {
+
+      setTimeout(
+        () => {
+
+          if (
+            voiceMode &&
+            recognition &&
+            !recognitionActive
+          ) {
+
+            try {
+
+              recognition.start();
+
+            } catch (error) {
+
+              console.error(
+                "Could not restart microphone:",
+                error
+              );
+
+            }
+
+          }
+
+        },
+        350
+      );
+
+    }
+
+    return;
+
+  }
+
+
+  const text =
+    speechQueue.shift();
 
   const utterance =
     new SpeechSynthesisUtterance(
       text
     );
+
 
   const voice =
     getLunaVoice();
@@ -1874,11 +2240,6 @@ function speakAsLuna(text) {
   }
 
 
-  /*
-    Slightly feminine/assistant-like
-    default tuning.
-  */
-
   utterance.rate =
     1.0;
 
@@ -1889,33 +2250,283 @@ function speakAsLuna(text) {
     1.0;
 
 
-  speechSynthesis.speak(
-    utterance
+  utterance.onstart =
+    () => {
+
+      voiceStatus.textContent =
+        "🔊 Luna is speaking...";
+
+    };
+
+
+  utterance.onend =
+    () => {
+
+      if (
+        generation !== speechGeneration
+      ) {
+
+        speechPlaying =
+          false;
+
+        return;
+
+      }
+
+      /*
+        Give mobile speech engines a tiny
+        moment between utterances.
+      */
+
+      setTimeout(
+        () => {
+
+          try {
+
+            if (
+              window.speechSynthesis.paused
+            ) {
+
+              window.speechSynthesis.resume();
+
+            }
+
+          } catch (error) {
+
+            console.error(
+              error
+            );
+
+          }
+
+          speakNextChunk(
+            generation
+          );
+
+        },
+        80
+      );
+
+    };
+
+
+  utterance.onerror =
+    event => {
+
+      console.error(
+        "Speech synthesis error:",
+        event
+      );
+
+
+      /*
+        Some mobile browsers report "interrupted"
+        when moving between chunks. Continue.
+      */
+
+      if (
+        generation === speechGeneration
+      ) {
+
+        setTimeout(
+          () => {
+
+            speakNextChunk(
+              generation
+            );
+
+          },
+          100
+        );
+
+      }
+
+    };
+
+
+  try {
+
+    /*
+      Mobile Safari occasionally pauses a
+      synthesis queue. Resume before speaking.
+    */
+
+    if (
+      window.speechSynthesis.paused
+    ) {
+
+      window.speechSynthesis.resume();
+
+    }
+
+    window.speechSynthesis.speak(
+      utterance
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Speech synthesis failed:",
+      error
+    );
+
+    speechPlaying =
+      false;
+
+  }
+
+}
+
+
+/*
+  Main Luna speech function.
+*/
+
+function speakAsLuna(text) {
+
+  if (!speechSupported()) {
+
+    console.warn(
+      "Speech synthesis is not supported."
+    );
+
+    return;
+
+  }
+
+
+  /*
+    If speech wasn't unlocked yet,
+    try anyway. Normally Voice Call has
+    already unlocked it.
+  */
+
+  if (!speechUnlocked) {
+
+    unlockSpeech();
+
+  }
+
+
+  stopLunaSpeaking();
+
+
+  const chunks =
+    splitSpeechText(
+      text
+    );
+
+  if (!chunks.length) {
+
+    return;
+
+  }
+
+
+  speechQueue =
+    chunks;
+
+  speechPlaying =
+    true;
+
+  const generation =
+    speechGeneration;
+
+
+  /*
+    Resume the speech engine before starting.
+  */
+
+  try {
+
+    window.speechSynthesis.resume();
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+  }
+
+
+  speakNextChunk(
+    generation
   );
 
 }
 
 
 /*
-  Some browsers load their voices
-  asynchronously.
+  Browser voice lists load asynchronously.
 */
 
-if (
-  "speechSynthesis" in window
-) {
+if (speechSupported()) {
 
-  speechSynthesis.onvoiceschanged =
+  window.speechSynthesis.onvoiceschanged =
     () => {
 
       getLunaVoice();
 
     };
 
+
+  /*
+    Force the browser to initialize
+    the voice engine.
+  */
+
+  setTimeout(
+    () => {
+
+      getLunaVoice();
+
+    },
+    100
+  );
+
 }
 
 
-/* VOICE RECOGNITION */
+/*
+  Keep mobile speech alive.
+
+  Some browsers pause speech when the
+  page is busy or after a short period.
+*/
+
+setInterval(
+  () => {
+
+    if (
+      speechSupported() &&
+      window.speechSynthesis.speaking &&
+      window.speechSynthesis.paused
+    ) {
+
+      try {
+
+        window.speechSynthesis.resume();
+
+      } catch (error) {
+
+        console.error(
+          "Speech keep-alive error:",
+          error
+        );
+
+      }
+
+    }
+
+  },
+  1000
+);
+
+
+/* =========================================================
+   VOICE RECOGNITION
+   ========================================================= */
 
 const SpeechRecognition =
   window.SpeechRecognition ||
@@ -2004,6 +2615,54 @@ if (SpeechRecognition) {
       recognitionActive =
         false;
 
+
+      /*
+        Don't immediately kill voice mode
+        for temporary mobile microphone errors.
+      */
+
+      if (
+        event.error === "no-speech"
+      ) {
+
+        if (voiceMode) {
+
+          voiceStatus.textContent =
+            "🎙 Didn't hear you. Listening again...";
+
+          setTimeout(
+            () => {
+
+              if (
+                voiceMode &&
+                !recognitionActive
+              ) {
+
+                try {
+
+                  recognition.start();
+
+                } catch (error) {
+
+                  console.error(
+                    error
+                  );
+
+                }
+
+              }
+
+            },
+            500
+          );
+
+        }
+
+        return;
+
+      }
+
+
       voiceStatus.classList.remove(
         "visible"
       );
@@ -2041,7 +2700,9 @@ if (SpeechRecognition) {
 }
 
 
-/* START / STOP VOICE CALL */
+/* =========================================================
+   START / STOP VOICE CALL
+   ========================================================= */
 
 function startVoiceCall() {
 
@@ -2056,8 +2717,30 @@ function startVoiceCall() {
   }
 
 
+  /*
+    IMPORTANT:
+    Unlock speech BEFORE starting the microphone.
+
+    This happens directly from the user's
+    Voice Call tap.
+  */
+
+  unlockSpeech();
+
+
   voiceMode =
     true;
+
+  voiceCall.classList.add(
+    "active"
+  );
+
+  voiceStatus.classList.add(
+    "visible"
+  );
+
+  voiceStatus.textContent =
+    "🎙 Listening...";
 
 
   try {
@@ -2090,6 +2773,9 @@ function stopVoiceCall() {
   );
 
 
+  stopLunaSpeaking();
+
+
   if (
     recognition &&
     recognitionActive
@@ -2101,7 +2787,9 @@ function stopVoiceCall() {
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        error
+      );
 
     }
 
@@ -2128,7 +2816,9 @@ voiceCall.addEventListener(
 );
 
 
-/* SEND MESSAGE */
+/* =========================================================
+   SEND MESSAGE
+   ========================================================= */
 
 async function sendMessage(
   text,
@@ -2140,11 +2830,6 @@ async function sendMessage(
 
   if (!text) return;
 
-
-  /*
-    If there isn't an active chat,
-    create a completely fresh one.
-  */
 
   if (!currentChat) {
 
@@ -2288,9 +2973,8 @@ async function sendMessage(
 
 
     /*
-      If this message came from
-      Voice Call, automatically speak
-      Luna's response.
+      Voice mode:
+      Luna speaks automatically.
     */
 
     if (fromVoice) {
@@ -2301,45 +2985,6 @@ async function sendMessage(
 
     }
 
-
-    /*
-      Continue voice mode after Luna
-      finishes responding.
-
-      This means you can speak again
-      after Luna talks.
-    */
-
-    if (fromVoice && voiceMode) {
-
-      setTimeout(
-        () => {
-
-          if (
-            recognition &&
-            voiceMode &&
-            !recognitionActive
-          ) {
-
-            try {
-
-              recognition.start();
-
-            } catch (error) {
-
-              console.error(
-                error
-              );
-
-            }
-
-          }
-
-        },
-        500
-      );
-
-    }
 
   } catch (error) {
 
@@ -2359,6 +3004,8 @@ async function sendMessage(
 
     if (fromVoice) {
 
+      stopLunaSpeaking();
+
       voiceStatus.textContent =
         "Voice call stopped.";
 
@@ -2368,6 +3015,7 @@ async function sendMessage(
       voiceCall.classList.remove(
         "active"
       );
+
 
       setTimeout(
         () => {
@@ -2387,7 +3035,16 @@ async function sendMessage(
     sendButton.disabled =
       false;
 
-    input.focus();
+    /*
+      Don't steal focus on mobile while
+      the user is using voice mode.
+    */
+
+    if (!fromVoice) {
+
+      input.focus();
+
+    }
 
   }
 
@@ -2462,14 +3119,6 @@ input.addEventListener(
 
 
 /* STARTUP */
-
-/*
-  Always start with a completely
-  fresh chat when the website opens.
-
-  Previous chats remain in the sidebar
-  and can still be opened manually.
-*/
 
 function loadInitialState() {
 
