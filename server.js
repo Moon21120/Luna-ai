@@ -150,7 +150,7 @@ app.post("/api/chat", async (req, res) => {
       },
 
       body: JSON.stringify({
-        model: "kimi-k3:cloud",
+        model: "gpt-oss:20b-cloud",
 
         messages: [
           {
