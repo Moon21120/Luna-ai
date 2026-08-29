@@ -1,3 +1,4 @@
+````html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -591,6 +592,95 @@
       font-style: italic;
     }
 
+    /* =========================================================
+       PLUS MENU / TOOLS
+       ========================================================= */
+
+    .composer-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .tools-menu {
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + 10px);
+      width: 235px;
+      background: #111c29;
+      border: 1px solid #2b3a4d;
+      border-radius: 13px;
+      padding: 7px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, .45);
+      display: none;
+      z-index: 50;
+    }
+
+    .tools-menu.open {
+      display: block;
+    }
+
+    .tools-title {
+      color: #77869a;
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      padding: 8px 9px 6px;
+    }
+
+    .tool-option {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #e1e7ef;
+      border-radius: 9px;
+      padding: 10px 11px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      font-size: 13px;
+      transition: .15s ease;
+    }
+
+    .tool-option:hover {
+      background: #182538;
+    }
+
+    .tool-option.active {
+      background: #1d3047;
+      border-color: #4a6688;
+      color: white;
+    }
+
+    .tool-icon {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      background: #1a2738;
+      flex-shrink: 0;
+    }
+
+    .tool-option.active .tool-icon {
+      background: #304c6d;
+    }
+
+    .tool-label {
+      flex: 1;
+    }
+
+    .tool-check {
+      opacity: 0;
+      font-size: 14px;
+    }
+
+    .tool-option.active .tool-check {
+      opacity: 1;
+    }
+
     /* COMPOSER */
 
     .composer-area {
@@ -618,6 +708,32 @@
       border: 1px solid #2b3a4d;
       border-radius: 16px;
       padding: 9px;
+    }
+
+    /* PLUS BUTTON */
+
+    .plus-button {
+      border: 0;
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      background: #182538;
+      color: #dce5f0;
+      font-size: 25px;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      transition: .18s ease;
+    }
+
+    .plus-button:hover {
+      background: #24364d;
+    }
+
+    .plus-button.active {
+      background: #2a405b;
+      transform: rotate(45deg);
     }
 
     textarea {
@@ -1083,12 +1199,22 @@
         );
       }
 
+      .composer-wrap {
+        max-width: none;
+      }
+
       .composer {
         width: 100%;
         max-width: none;
         border-radius: 15px;
         padding: 7px;
         gap: 5px;
+      }
+
+      .plus-button {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
       }
 
       textarea {
@@ -1102,6 +1228,12 @@
         width: 40px;
         height: 40px;
         min-width: 40px;
+      }
+
+      .tools-menu {
+        left: 0;
+        bottom: calc(100% + 8px);
+        width: min(235px, calc(100vw - 20px));
       }
 
       .note {
@@ -1406,29 +1538,100 @@
 
     <div class="composer-area">
 
-      <form
-        class="composer"
-        id="form"
-      >
+      <div class="composer-wrap">
 
-        <textarea
-          id="input"
-          rows="1"
-          maxlength="20000"
-          placeholder="Message Luna..."
-          autocomplete="off"
-        ></textarea>
+        <!-- PLUS TOOLS MENU -->
 
-        <button
-          class="send"
-          id="send"
-          type="submit"
-          aria-label="Send message"
+        <div
+          class="tools-menu"
+          id="toolsMenu"
         >
-          ↑
-        </button>
 
-      </form>
+          <div class="tools-title">
+            LUNA TOOLS
+          </div>
+
+          <button
+            class="tool-option"
+            id="thinkHarderToggle"
+            type="button"
+            aria-pressed="false"
+          >
+
+            <span class="tool-icon">
+              🧠
+            </span>
+
+            <span class="tool-label">
+              Think harder
+            </span>
+
+            <span class="tool-check">
+              ✓
+            </span>
+
+          </button>
+
+          <button
+            class="tool-option"
+            id="searchWebToggle"
+            type="button"
+            aria-pressed="false"
+          >
+
+            <span class="tool-icon">
+              🌐
+            </span>
+
+            <span class="tool-label">
+              Search the web
+            </span>
+
+            <span class="tool-check">
+              ✓
+            </span>
+
+          </button>
+
+        </div>
+
+
+        <form
+          class="composer"
+          id="form"
+        >
+
+          <button
+            class="plus-button"
+            id="plusButton"
+            type="button"
+            aria-label="Open Luna tools"
+            aria-expanded="false"
+            title="Luna tools"
+          >
+            +
+          </button>
+
+          <textarea
+            id="input"
+            rows="1"
+            maxlength="20000"
+            placeholder="Message Luna..."
+            autocomplete="off"
+          ></textarea>
+
+          <button
+            class="send"
+            id="send"
+            type="submit"
+            aria-label="Send message"
+          >
+            ↑
+          </button>
+
+        </form>
+
+      </div>
 
       <div
         class="voice-status"
@@ -1557,6 +1760,23 @@ let conversation = [];
 
 
 /* =========================================================
+   LUNA TOOLS
+   ========================================================= */
+
+/*
+ * These are persistent toggles.
+ *
+ * They remain enabled until the user taps them again.
+ */
+
+let thinkHarderEnabled =
+  localStorage.getItem("luna_think_harder") === "true";
+
+let searchWebEnabled =
+  localStorage.getItem("luna_search_web") === "true";
+
+
+/* =========================================================
    ELEMENTS
    ========================================================= */
 
@@ -1613,6 +1833,154 @@ const moonPhase =
 
 const deleteAllChatsButton =
   document.getElementById("deleteAllChats");
+
+const plusButton =
+  document.getElementById("plusButton");
+
+const toolsMenu =
+  document.getElementById("toolsMenu");
+
+const thinkHarderToggle =
+  document.getElementById("thinkHarderToggle");
+
+const searchWebToggle =
+  document.getElementById("searchWebToggle");
+
+
+/* =========================================================
+   LUNA TOOLS UI
+   ========================================================= */
+
+function updateToolUI() {
+
+  thinkHarderToggle.classList.toggle(
+    "active",
+    thinkHarderEnabled
+  );
+
+  searchWebToggle.classList.toggle(
+    "active",
+    searchWebEnabled
+  );
+
+  thinkHarderToggle.setAttribute(
+    "aria-pressed",
+    String(thinkHarderEnabled)
+  );
+
+  searchWebToggle.setAttribute(
+    "aria-pressed",
+    String(searchWebEnabled)
+  );
+
+}
+
+
+function toggleToolsMenu() {
+
+  const isOpen =
+    toolsMenu.classList.toggle(
+      "open"
+    );
+
+  plusButton.classList.toggle(
+    "active",
+    isOpen
+  );
+
+  plusButton.setAttribute(
+    "aria-expanded",
+    String(isOpen)
+  );
+
+}
+
+
+plusButton.addEventListener(
+  "click",
+  event => {
+
+    event.stopPropagation();
+
+    toggleToolsMenu();
+
+  }
+);
+
+
+thinkHarderToggle.addEventListener(
+  "click",
+  event => {
+
+    event.stopPropagation();
+
+    thinkHarderEnabled =
+      !thinkHarderEnabled;
+
+    localStorage.setItem(
+      "luna_think_harder",
+      String(thinkHarderEnabled)
+    );
+
+    updateToolUI();
+
+  }
+);
+
+
+searchWebToggle.addEventListener(
+  "click",
+  event => {
+
+    event.stopPropagation();
+
+    searchWebEnabled =
+      !searchWebEnabled;
+
+    localStorage.setItem(
+      "luna_search_web",
+      String(searchWebEnabled)
+    );
+
+    updateToolUI();
+
+  }
+);
+
+
+/*
+ * Close the tools menu when clicking elsewhere.
+ */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    if (
+      !toolsMenu.contains(event.target) &&
+      !plusButton.contains(event.target)
+    ) {
+
+      toolsMenu.classList.remove(
+        "open"
+      );
+
+      plusButton.classList.remove(
+        "active"
+      );
+
+      plusButton.setAttribute(
+        "aria-expanded",
+        "false"
+      );
+
+    }
+
+  }
+);
+
+
+updateToolUI();
 
 
 /* =========================================================
@@ -2953,11 +3321,6 @@ if (SpeechRecognition) {
   recognition =
     new SpeechRecognition();
 
-  /*
-   * Continuous mode prevents Chrome from stopping
-   * the microphone after only one short phrase.
-   */
-
   recognition.continuous =
     true;
 
@@ -2993,12 +3356,6 @@ if (SpeechRecognition) {
 
   recognition.onresult =
     event => {
-
-      /*
-       * NEVER process speech while Luna is talking.
-       * This prevents the microphone from hearing Luna
-       * through the speakers.
-       */
 
       if (
         speechPlaying ||
@@ -3036,11 +3393,6 @@ if (SpeechRecognition) {
       currentVoiceTranscript =
         transcript;
 
-
-      /*
-       * Every time the user speaks,
-       * restart the 3-second silence timer.
-       */
 
       clearTimeout(
         silenceTimer
@@ -3154,14 +3506,6 @@ if (SpeechRecognition) {
       recognitionActive =
         false;
 
-      /*
-       * Chrome can occasionally end recognition
-       * even in continuous mode.
-       *
-       * Restart it automatically while Luna is
-       * waiting for the user.
-       */
-
       if (
         voiceMode &&
         !speechPlaying &&
@@ -3207,11 +3551,6 @@ function startRecognitionSafely() {
     recognition.start();
 
   } catch (error) {
-
-    /*
-     * InvalidStateError happens if Chrome thinks
-     * recognition is already starting.
-     */
 
     if (
       error.name !==
@@ -3452,11 +3791,6 @@ function startVoiceCall() {
   );
 
 
-  /*
-   * THIS is what makes the separate call screen
-   * appear immediately.
-   */
-
   openVoiceScreen();
 
 
@@ -3466,11 +3800,6 @@ function startVoiceCall() {
   callStatus.textContent =
     "🎙 Listening...";
 
-
-  /*
-   * Make absolutely sure Luna is not speaking
-   * when the microphone starts.
-   */
 
   stopLunaSpeaking();
 
@@ -3604,6 +3933,20 @@ async function sendMessage(
     getCurrentChat();
 
 
+  /*
+   * Capture the tool state at the exact moment
+   * this message is sent.
+   *
+   * The toggles themselves remain persistent.
+   */
+
+  const useThinkHarder =
+    thinkHarderEnabled;
+
+  const useWebSearch =
+    searchWebEnabled;
+
+
   addMessage(
     "user",
     text
@@ -3642,7 +3985,33 @@ async function sendMessage(
       "call-status thinking";
 
     callStatus.textContent =
-      "Luna is thinking...";
+      useWebSearch
+        ? "Luna is searching the web..."
+        : "Luna is thinking...";
+
+  }
+
+
+  let thinkingText =
+    "Thinking...";
+
+  if (
+    useThinkHarder &&
+    useWebSearch
+  ) {
+
+    thinkingText =
+      "Searching the web and thinking deeply...";
+
+  } else if (useThinkHarder) {
+
+    thinkingText =
+      "Thinking harder...";
+
+  } else if (useWebSearch) {
+
+    thinkingText =
+      "Searching the web...";
 
   }
 
@@ -3650,7 +4019,7 @@ async function sendMessage(
   const thinking =
     addMessageElement(
       "assistant",
-      "Thinking...",
+      thinkingText,
       "thinking"
     );
 
@@ -3668,6 +4037,18 @@ async function sendMessage(
 
 
   try {
+
+    /*
+     * The backend receives these two flags.
+     *
+     * thinkHarder:
+     *   true = user wants deeper reasoning
+     *
+     * searchWeb:
+     *   true = user wants current web information
+     *
+     * Both can be true simultaneously.
+     */
 
     const response =
       await fetch(
@@ -3691,7 +4072,13 @@ async function sendMessage(
                 conversation,
 
               memory:
-                buildMemoryForLuna()
+                buildMemoryForLuna(),
+
+              thinkHarder:
+                useThinkHarder,
+
+              searchWeb:
+                useWebSearch
 
             })
 
@@ -3941,6 +4328,8 @@ function loadInitialState() {
   conversation =
     [];
 
+  updateToolUI();
+
   renderSidebar();
 
   renderMessages();
@@ -3954,3 +4343,4 @@ loadInitialState();
 
 </body>
 </html>
+````
