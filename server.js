@@ -1,3 +1,4 @@
+```js
 import express from "express";
 
 const app = express();
@@ -73,6 +74,10 @@ const LUNA_PERSONALITY = [
 ].join("\n");
 
 
+/* =========================
+   WEB SEARCH
+========================= */
+
 async function searchWeb(query, apiKey) {
   console.log("WEB SEARCH STARTED:", query);
 
@@ -80,12 +85,15 @@ async function searchWeb(query, apiKey) {
     "https://ollama.com/api/web_search",
     {
       method: "POST",
+
       headers: {
-        "Authorization": "Bearer " + apiKey,
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
+
       body: JSON.stringify({
-        query: query
+        query: query,
+        max_results: 8
       })
     }
   );
@@ -97,11 +105,10 @@ async function searchWeb(query, apiKey) {
   try {
     data = JSON.parse(rawText);
   } catch {
-    data = {
-      error:
-        rawText ||
-        "Ollama web search returned an invalid response."
-    };
+    throw new Error(
+      rawText ||
+      "Ollama web search returned an invalid response."
+    );
   }
 
   if (!response.ok) {
@@ -109,40 +116,44 @@ async function searchWeb(query, apiKey) {
 
     throw new Error(
       data.error ||
-      "Web search returned HTTP " + response.status + "."
+      `Web search returned HTTP ${response.status}.`
     );
   }
 
-  console.log("WEB SEARCH SUCCESS");
+  if (!Array.isArray(data.results)) {
+    throw new Error(
+      "Ollama web search returned no results array."
+    );
+  }
+
+  console.log(
+    `WEB SEARCH SUCCESS: ${data.results.length} results`
+  );
 
   return data;
 }
 
 
 function formatSearchResults(searchData) {
-  if (!searchData) {
-    return "";
-  }
-
-  const results = Array.isArray(searchData.results)
-    ? searchData.results
-    : [];
-
-  if (results.length === 0) {
+  if (
+    !searchData ||
+    !Array.isArray(searchData.results) ||
+    searchData.results.length === 0
+  ) {
     return [
       "",
-      "WEB SEARCH RESULTS:",
-      "No web search results were returned.",
-      "END WEB SEARCH RESULTS."
+      "WEB SEARCH STATUS: SEARCH COMPLETED BUT NO RESULTS WERE FOUND.",
+      "Do not pretend that you found information on the web.",
+      ""
     ].join("\n");
   }
 
-  const formatted = results
+  const formatted = searchData.results
     .slice(0, 8)
     .map((result, index) => {
       const title =
         result.title ||
-        "Result " + (index + 1);
+        `Result ${index + 1}`;
 
       const url =
         result.url ||
@@ -155,26 +166,34 @@ function formatSearchResults(searchData) {
         "";
 
       return [
-        "[" + (index + 1) + "]",
-        "Title: " + title,
-        "URL: " + url,
-        "Information: " + content
+        `SEARCH RESULT ${index + 1}`,
+        `Title: ${title}`,
+        `URL: ${url}`,
+        `Information: ${content}`
       ].join("\n");
     })
     .join("\n\n");
 
   return [
     "",
-    "WEB SEARCH RESULTS:",
+    "================ WEB SEARCH RESULTS ================",
     formatted,
-    "END WEB SEARCH RESULTS.",
+    "================ END WEB SEARCH RESULTS ================",
     "",
-    "Use these results when answering the user's question.",
-    "Do not claim a search happened if no search was performed.",
-    "Prefer current search information when the question requires current information."
+    "IMPORTANT WEB SEARCH INSTRUCTIONS:",
+    "Web search WAS performed for this request.",
+    "Use the web search results above when answering the user.",
+    "Use the current information from these results instead of relying only on your old knowledge.",
+    "If the results do not contain enough information, say so.",
+    "Do not claim that you searched the web unless the search results above are present.",
+    ""
   ].join("\n");
 }
 
+
+/* =========================
+   CHAT
+========================= */
 
 app.post("/api/chat", async (req, res) => {
   try {
@@ -195,10 +214,25 @@ app.post("/api/chat", async (req, res) => {
       : [];
 
     const thinkHarder =
-      req.body.thinkHarder === true;
+      req.body.thinkHarder === true ||
+      req.body.thinkHarder === "true" ||
+      req.body.thinkHarder === 1;
+
+    /*
+      IMPORTANT FIX:
+
+      Accept Web Search whether the frontend sends:
+      true
+      "true"
+      1
+      "1"
+    */
 
     const searchWebEnabled =
-      req.body.searchWeb === true;
+      req.body.searchWeb === true ||
+      req.body.searchWeb === "true" ||
+      req.body.searchWeb === 1 ||
+      req.body.searchWeb === "1";
 
     if (messages.length === 0) {
       return res.status(400).json({
@@ -207,7 +241,9 @@ app.post("/api/chat", async (req, res) => {
     }
 
 
-    /* MEMORY */
+    /* =========================
+       MEMORY
+    ========================= */
 
     let memoryContext = "";
 
@@ -218,6 +254,7 @@ app.post("/api/chat", async (req, res) => {
         "",
         "SAVED MEMORY FROM PREVIOUS CONVERSATIONS:",
         "",
+
         recentMemory
           .map(function(item) {
             return (
@@ -228,13 +265,16 @@ app.post("/api/chat", async (req, res) => {
             );
           })
           .join("\n\n"),
+
         "",
         "END SAVED MEMORY."
       ].join("\n");
     }
 
 
-    /* CURRENT USER MESSAGE */
+    /* =========================
+       CURRENT USER MESSAGE
+    ========================= */
 
     const latestUserMessage =
       [...messages]
@@ -244,17 +284,24 @@ app.post("/api/chat", async (req, res) => {
         });
 
     const userQuery =
-      latestUserMessage?.content || "";
+      typeof latestUserMessage?.content === "string"
+        ? latestUserMessage.content
+        : "";
 
 
-    /* WEB SEARCH */
+    /* =========================
+       WEB SEARCH
+    ========================= */
 
     let webContext = "";
 
-    if (searchWebEnabled && userQuery) {
+    console.log("WEB SEARCH TOGGLE:", searchWebEnabled);
+    console.log("USER QUERY:", userQuery);
+
+    if (searchWebEnabled && userQuery.trim()) {
       try {
         const searchData = await searchWeb(
-          userQuery,
+          userQuery.trim(),
           apiKey
         );
 
@@ -263,21 +310,30 @@ app.post("/api/chat", async (req, res) => {
 
       } catch (searchError) {
         console.error(
-          "Web search failed:",
+          "WEB SEARCH FAILED:",
           searchError
         );
 
         webContext = [
           "",
-          "WEB SEARCH:",
-          "The requested web search could not be completed.",
-          "Do not pretend that search results were found."
+          "WEB SEARCH STATUS: SEARCH FAILED.",
+          `Error: ${searchError.message}`,
+          "Do not pretend that search results were found.",
+          ""
         ].join("\n");
       }
+    } else if (searchWebEnabled) {
+      webContext = [
+        "",
+        "WEB SEARCH STATUS: SEARCH WAS ENABLED BUT THE USER MESSAGE WAS EMPTY.",
+        ""
+      ].join("\n");
     }
 
 
-    /* THINK HARDER */
+    /* =========================
+       THINK HARDER
+    ========================= */
 
     let thinkingContext = "";
 
@@ -296,11 +352,14 @@ app.post("/api/chat", async (req, res) => {
 
     console.log("REQUEST OPTIONS:", {
       thinkHarder: thinkHarder,
-      searchWeb: searchWebEnabled
+      searchWeb: searchWebEnabled,
+      query: userQuery
     });
 
 
-    /* OLLAMA CHAT */
+    /* =========================
+       OLLAMA CHAT
+    ========================= */
 
     const response = await fetch(
       "https://ollama.com/api/chat",
@@ -308,7 +367,7 @@ app.post("/api/chat", async (req, res) => {
         method: "POST",
 
         headers: {
-          "Authorization": "Bearer " + apiKey,
+          "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json"
         },
 
@@ -318,6 +377,7 @@ app.post("/api/chat", async (req, res) => {
           messages: [
             {
               role: "system",
+
               content:
                 LUNA_PERSONALITY +
                 memoryContext +
@@ -357,9 +417,7 @@ app.post("/api/chat", async (req, res) => {
       return res.status(response.status).json({
         error:
           data.error ||
-          "Ollama returned HTTP " +
-          response.status +
-          "."
+          `Ollama returned HTTP ${response.status}.`
       });
     }
 
@@ -383,7 +441,9 @@ app.post("/api/chat", async (req, res) => {
 });
 
 
-/* HEALTH CHECK */
+/* =========================
+   HEALTH CHECK
+========================= */
 
 app.get("/api/health", function(req, res) {
   res.json({
@@ -393,7 +453,9 @@ app.get("/api/health", function(req, res) {
 });
 
 
-/* HOME */
+/* =========================
+   HOME
+========================= */
 
 app.get("/", function(req, res) {
   res.sendFile(
@@ -402,10 +464,13 @@ app.get("/", function(req, res) {
 });
 
 
-/* START SERVER */
+/* =========================
+   START SERVER
+========================= */
 
 app.listen(PORT, function() {
   console.log(
     "Luna AI running on port " + PORT
   );
 });
+```
