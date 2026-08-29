@@ -1908,7 +1908,9 @@ function addMessageElement(
     "message-content";
 
 
-  if (extraClass === "thinking") {
+  if (
+    extraClass === "thinking"
+  ) {
 
     content.textContent =
       text;
@@ -2048,9 +2050,24 @@ function buildMemoryForLuna() {
    ========================================================= */
 
 let speechUnlocked = false;
+
 let speechQueue = [];
+
 let speechPlaying = false;
+
 let speechGeneration = 0;
+
+/*
+ * These variables are important for echo protection.
+ *
+ * Luna's current sentence and remaining sentences are tracked
+ * so that if the microphone hears the speakers, the transcript
+ * can be recognized as Luna's voice instead of the user's.
+ */
+
+let activeLunaSpeechText = "";
+
+let queuedLunaSpeechText = [];
 
 
 function speechSupported() {
@@ -2145,6 +2162,192 @@ function getLunaVoice() {
 
 }
 
+
+/* =========================================================
+   TEXT NORMALIZATION FOR ECHO DETECTION
+   ========================================================= */
+
+function normalizeSpeechText(text) {
+
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+}
+
+
+function speechWords(text) {
+
+  const normalized =
+    normalizeSpeechText(text);
+
+  if (!normalized) {
+    return [];
+  }
+
+  return normalized.split(" ");
+
+}
+
+
+/*
+ * Determines whether a transcript is probably Luna's own voice.
+ *
+ * This intentionally uses several checks:
+ *
+ * 1. Exact match.
+ * 2. Transcript is contained inside Luna's sentence.
+ * 3. Luna's sentence is contained inside transcript.
+ * 4. High word overlap.
+ *
+ * This means a transcript such as:
+ *
+ * "hello how are you"
+ *
+ * produced because Luna just said:
+ *
+ * "Hello, how are you?"
+ *
+ * will be ignored instead of becoming a user message.
+ */
+
+function isLikelyLunaEcho(transcript) {
+
+  const incoming =
+    normalizeSpeechText(
+      transcript
+    );
+
+  if (!incoming) {
+    return false;
+  }
+
+
+  const references = [
+
+    activeLunaSpeechText,
+
+    ...queuedLunaSpeechText
+
+  ]
+    .map(
+      normalizeSpeechText
+    )
+    .filter(Boolean);
+
+
+  if (!references.length) {
+
+    return false;
+
+  }
+
+
+  for (
+    const reference of references
+  ) {
+
+    if (
+      incoming === reference
+    ) {
+
+      return true;
+
+    }
+
+
+    if (
+      incoming.length >= 4 &&
+      reference.includes(incoming)
+    ) {
+
+      return true;
+
+    }
+
+
+    if (
+      reference.length >= 4 &&
+      incoming.includes(reference)
+    ) {
+
+      return true;
+
+    }
+
+
+    const incomingWords =
+      speechWords(
+        incoming
+      );
+
+    const referenceWords =
+      speechWords(
+        reference
+      );
+
+
+    if (
+      incomingWords.length >= 2 &&
+      referenceWords.length >= 2
+    ) {
+
+      const referenceSet =
+        new Set(
+          referenceWords
+        );
+
+      let matches = 0;
+
+      incomingWords.forEach(
+        word => {
+
+          if (
+            referenceSet.has(word)
+          ) {
+
+            matches++;
+
+          }
+
+        }
+      );
+
+
+      const overlap =
+        matches /
+        incomingWords.length;
+
+
+      /*
+       * A high overlap strongly indicates
+       * that the microphone captured Luna.
+       */
+
+      if (
+        overlap >= 0.70 &&
+        incomingWords.length >= 2
+      ) {
+
+        return true;
+
+      }
+
+    }
+
+  }
+
+
+  return false;
+
+}
+
+
+/* =========================================================
+   SPEECH UNLOCK
+   ========================================================= */
 
 function unlockSpeech() {
 
@@ -2242,6 +2445,10 @@ function unlockSpeech() {
 }
 
 
+/* =========================================================
+   SPLIT SPEECH
+   ========================================================= */
+
 function splitSpeechText(text) {
 
   if (!text) return [];
@@ -2261,6 +2468,7 @@ function splitSpeechText(text) {
 
 
   const chunks = [];
+
   let current = "";
 
 
@@ -2279,7 +2487,9 @@ function splitSpeechText(text) {
         current +
         " " +
         trimmed
-      ).trim().length <= 220
+      )
+        .trim()
+        .length <= 220
     ) {
 
       current =
@@ -2319,7 +2529,9 @@ function splitSpeechText(text) {
                 part +
                 " " +
                 word
-              ).trim().length <= 220
+              )
+                .trim()
+                .length <= 220
             ) {
 
               part =
@@ -2387,13 +2599,22 @@ function splitSpeechText(text) {
 }
 
 
+/* =========================================================
+   STOP LUNA SPEAKING
+   ========================================================= */
+
 function stopLunaSpeaking() {
 
   speechGeneration++;
 
   speechQueue = [];
 
+  queuedLunaSpeechText = [];
+
+  activeLunaSpeechText = "";
+
   speechPlaying = false;
+
 
   if (speechSupported()) {
 
@@ -2442,15 +2663,49 @@ function speakNextChunk(
     speechPlaying =
       false;
 
+    activeLunaSpeechText =
+      "";
+
+    queuedLunaSpeechText =
+      [];
+
+
     if (
       voiceMode &&
       recognition &&
       !recognitionActive
     ) {
 
-      restartRecognition();
+      setTimeout(
+        () => {
+
+          if (
+            voiceMode &&
+            recognition &&
+            !recognitionActive
+          ) {
+
+            try {
+
+              recognition.start();
+
+            } catch (error) {
+
+              console.error(
+                "Could not restart microphone:",
+                error
+              );
+
+            }
+
+          }
+
+        },
+        250
+      );
 
     }
+
 
     return;
 
@@ -2459,6 +2714,14 @@ function speakNextChunk(
 
   const text =
     speechQueue.shift();
+
+
+  activeLunaSpeechText =
+    text;
+
+
+  queuedLunaSpeechText =
+    [...speechQueue];
 
 
   const utterance =
@@ -2508,11 +2771,12 @@ function speakNextChunk(
 
       }
 
-      speechPlaying =
-        true;
+      voiceStatus.classList.add(
+        "visible"
+      );
 
       voiceStatus.textContent =
-        "🔊 Luna is speaking... Talk anytime to interrupt.";
+        "🔊 Luna is speaking — talk to interrupt";
 
     };
 
@@ -2530,6 +2794,13 @@ function speakNextChunk(
         return;
 
       }
+
+
+      activeLunaSpeechText =
+        "";
+
+      queuedLunaSpeechText =
+        [...speechQueue];
 
 
       setTimeout(
@@ -2553,12 +2824,13 @@ function speakNextChunk(
 
           }
 
+
           speakNextChunk(
             generation
           );
 
         },
-        80
+        60
       );
 
     };
@@ -2577,6 +2849,10 @@ function speakNextChunk(
         generation === speechGeneration
       ) {
 
+        activeLunaSpeechText =
+          "";
+
+
         setTimeout(
           () => {
 
@@ -2585,7 +2861,7 @@ function speakNextChunk(
             );
 
           },
-          100
+          80
         );
 
       }
@@ -2602,6 +2878,7 @@ function speakNextChunk(
       window.speechSynthesis.resume();
 
     }
+
 
     window.speechSynthesis.speak(
       utterance
@@ -2621,6 +2898,10 @@ function speakNextChunk(
 
 }
 
+
+/* =========================================================
+   SPEAK AS LUNA
+   ========================================================= */
 
 function speakAsLuna(text) {
 
@@ -2650,6 +2931,7 @@ function speakAsLuna(text) {
       text
     );
 
+
   if (!chunks.length) {
 
     return;
@@ -2660,8 +2942,14 @@ function speakAsLuna(text) {
   speechQueue =
     chunks;
 
+
+  queuedLunaSpeechText =
+    [...chunks];
+
+
   speechPlaying =
     true;
+
 
   const generation =
     speechGeneration;
@@ -2687,6 +2975,10 @@ function speakAsLuna(text) {
 }
 
 
+/* =========================================================
+   SPEECH SYNTHESIS INITIALIZATION
+   ========================================================= */
+
 if (speechSupported()) {
 
   window.speechSynthesis.onvoiceschanged =
@@ -2708,6 +3000,11 @@ if (speechSupported()) {
 
 }
 
+
+/*
+ * Some browsers occasionally pause speech synthesis.
+ * Keep it alive while Luna is supposed to be speaking.
+ */
 
 setInterval(
   () => {
@@ -2754,36 +3051,109 @@ let recognitionActive = false;
 
 
 /*
-  Voice conversation state.
+ * User speech handling.
+ *
+ * Luna waits until the user has been silent for
+ * exactly 3 seconds before sending the message.
+ */
 
-  Luna waits until the user has been silent
-  for 3 seconds before sending the message.
-*/
+const USER_SILENCE_DELAY =
+  3000;
 
-const VOICE_SILENCE_DELAY = 3000;
+let userTranscript = "";
 
-let voiceTranscript = "";
+let userInterimTranscript = "";
 
-let voiceInterimTranscript = "";
+let userSpeechTimer = null;
 
-let voiceSilenceTimer = null;
-
-let recognitionRestartTimer = null;
+let userHasSpoken = false;
 
 
 /* =========================================================
-   CLEAR VOICE TIMER
+   MICROPHONE ECHO / AUDIO SETTINGS
    ========================================================= */
 
-function clearVoiceSilenceTimer() {
+let microphoneStream = null;
 
-  if (voiceSilenceTimer) {
 
-    clearTimeout(
-      voiceSilenceTimer
+/*
+ * Ask the browser for an echo-cancelled microphone stream.
+ *
+ * SpeechRecognition itself cannot be given this stream directly,
+ * but requesting these constraints lets browsers apply their
+ * normal microphone processing where supported.
+ */
+
+async function prepareMicrophone() {
+
+  if (
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    microphoneStream =
+      await navigator.mediaDevices.getUserMedia({
+
+        audio: {
+
+          echoCancellation: true,
+
+          noiseSuppression: true,
+
+          autoGainControl: true
+
+        }
+
+      });
+
+
+    /*
+     * We don't keep the stream running unnecessarily.
+     * SpeechRecognition manages the actual recognition microphone.
+     */
+
+    microphoneStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+    microphoneStream =
+      null;
+
+  } catch (error) {
+
+    console.warn(
+      "Microphone audio processing could not be prepared:",
+      error
     );
 
-    voiceSilenceTimer =
+  }
+
+}
+
+
+/* =========================================================
+   CLEAR USER SILENCE TIMER
+   ========================================================= */
+
+function clearUserSpeechTimer() {
+
+  if (userSpeechTimer) {
+
+    clearTimeout(
+      userSpeechTimer
+    );
+
+    userSpeechTimer =
       null;
 
   }
@@ -2792,83 +3162,36 @@ function clearVoiceSilenceTimer() {
 
 
 /* =========================================================
-   RESTART RECOGNITION
+   RESET USER VOICE BUFFER
    ========================================================= */
 
-function restartRecognition() {
+function resetUserVoiceBuffer() {
 
-  if (
-    !voiceMode ||
-    !recognition ||
-    recognitionActive
-  ) {
+  clearUserSpeechTimer();
 
-    return;
+  userTranscript =
+    "";
 
-  }
+  userInterimTranscript =
+    "";
 
-
-  if (recognitionRestartTimer) {
-
-    clearTimeout(
-      recognitionRestartTimer
-    );
-
-  }
-
-
-  recognitionRestartTimer =
-    setTimeout(
-      () => {
-
-        if (
-          !voiceMode ||
-          !recognition ||
-          recognitionActive
-        ) {
-
-          return;
-
-        }
-
-
-        try {
-
-          recognition.start();
-
-        } catch (error) {
-
-          /*
-            Browsers sometimes throw if recognition
-            is already starting internally. That's okay.
-          */
-
-          console.debug(
-            "Recognition restart:",
-            error
-          );
-
-        }
-
-      },
-      250
-    );
+  userHasSpoken =
+    false;
 
 }
 
 
 /* =========================================================
-   SEND VOICE AFTER 3 SECONDS OF SILENCE
+   SCHEDULE VOICE MESSAGE
    ========================================================= */
 
 function scheduleVoiceSend() {
 
-  clearVoiceSilenceTimer();
+  clearUserSpeechTimer();
 
 
   if (
-    !voiceMode ||
-    !voiceTranscript.trim()
+    !userTranscript.trim()
   ) {
 
     return;
@@ -2877,58 +3200,146 @@ function scheduleVoiceSend() {
 
 
   voiceStatus.textContent =
-    "🎙 I heard you. Waiting...";
+    "🎙 Waiting for you to finish...";
 
 
-  voiceSilenceTimer =
+  userSpeechTimer =
     setTimeout(
       () => {
 
-        if (!voiceMode) {
+        const finalText =
+          userTranscript.trim();
+
+
+        if (
+          !finalText ||
+          !voiceMode
+        ) {
 
           return;
 
         }
 
 
-        const text =
-          voiceTranscript.trim();
-
-
-        if (!text) {
-
-          return;
-
-        }
-
-
-        voiceTranscript = "";
-
-        voiceInterimTranscript = "";
-
-
-        clearVoiceSilenceTimer();
+        resetUserVoiceBuffer();
 
 
         voiceStatus.textContent =
-          "🧠 Luna is thinking...";
+          "Luna is thinking...";
 
 
         sendMessage(
-          text,
+          finalText,
           true
         );
 
       },
-      VOICE_SILENCE_DELAY
+      USER_SILENCE_DELAY
     );
 
 }
 
 
 /* =========================================================
-   SPEECH RECOGNITION SETUP
+   PROCESS USER SPEECH
    ========================================================= */
+
+function processPossibleUserSpeech(
+  transcript,
+  isFinal
+) {
+
+  const clean =
+    String(transcript || "")
+      .trim();
+
+
+  if (!clean) {
+
+    return;
+
+  }
+
+
+  /*
+   * CRITICAL ECHO FILTER
+   *
+   * If Luna is speaking and the browser's microphone
+   * recognizes Luna's voice, completely ignore it.
+   */
+
+  if (
+    speechPlaying &&
+    isLikelyLunaEcho(clean)
+  ) {
+
+    console.log(
+      "Ignored Luna speaker echo:",
+      clean
+    );
+
+    return;
+
+  }
+
+
+  /*
+   * We now know this is probably the user.
+   *
+   * If Luna is speaking, immediately interrupt her.
+   */
+
+  if (
+    speechPlaying
+  ) {
+
+    stopLunaSpeaking();
+
+    voiceStatus.textContent =
+      "🎙 Listening...";
+
+  }
+
+
+  userHasSpoken =
+    true;
+
+
+  if (isFinal) {
+
+    if (userTranscript) {
+
+      userTranscript +=
+        " " +
+        clean;
+
+    } else {
+
+      userTranscript =
+        clean;
+
+    }
+
+    userInterimTranscript =
+      "";
+
+  } else {
+
+    userInterimTranscript =
+      clean;
+
+  }
+
+
+  /*
+   * Restart the 3-second silence countdown
+   * every time speech is detected.
+   */
+
+  scheduleVoiceSend();
+
+}
+
 
 if (SpeechRecognition) {
 
@@ -2937,18 +3348,18 @@ if (SpeechRecognition) {
 
 
   /*
-    Continuous is important because Luna keeps
-    listening during the entire voice call.
-  */
+   * Continuous mode lets Luna keep listening
+   * instead of stopping after one recognition result.
+   */
 
   recognition.continuous =
     true;
 
 
   /*
-    Interim results let us detect that the user
-    has started talking before the final transcript.
-  */
+   * Interim results are required so Luna can detect
+   * an interruption while she is speaking.
+   */
 
   recognition.interimResults =
     true;
@@ -2968,27 +3379,26 @@ if (SpeechRecognition) {
       recognitionActive =
         true;
 
+
       voiceCall.classList.add(
         "active"
       );
+
 
       voiceStatus.classList.add(
         "visible"
       );
 
 
+      /*
+       * Don't overwrite the "waiting" message
+       * if the user is already finishing a sentence.
+       */
+
       if (
-        speechPlaying ||
-        (
-          speechSupported() &&
-          window.speechSynthesis.speaking
-        )
+        !userHasSpoken &&
+        !speechPlaying
       ) {
-
-        voiceStatus.textContent =
-          "🔊 Luna is speaking... Talk anytime to interrupt.";
-
-      } else {
 
         voiceStatus.textContent =
           "🎙 Listening...";
@@ -3001,21 +3411,13 @@ if (SpeechRecognition) {
   recognition.onresult =
     event => {
 
-      let finalText =
-        "";
-
-      let interimText =
-        "";
-
-
       /*
-        Read every result so the transcript remains
-        reliable even when Chrome gives us multiple
-        result events.
-      */
+       * SpeechRecognition can return several results
+       * in one event. Process every new result.
+       */
 
       for (
-        let i = 0;
+        let i = event.resultIndex;
         i < event.results.length;
         i++
       ) {
@@ -3037,118 +3439,10 @@ if (SpeechRecognition) {
         }
 
 
-        if (result.isFinal) {
-
-          finalText +=
-            (
-              finalText
-                ? " "
-                : ""
-            ) +
-            transcript;
-
-        } else {
-
-          interimText +=
-            (
-              interimText
-                ? " "
-                : ""
-            ) +
-            transcript;
-
-        }
-
-      }
-
-
-      /*
-        IMPORTANT:
-        If Luna is currently speaking and the
-        recognition system hears the user, immediately
-        stop Luna.
-
-        This is what makes interruption possible.
-      */
-
-      const userIsTalking =
-        (
-          finalText.trim() ||
-          interimText.trim()
+        processPossibleUserSpeech(
+          transcript,
+          result.isFinal
         );
-
-
-      if (
-        userIsTalking &&
-        (
-          speechPlaying ||
-          (
-            speechSupported() &&
-            window.speechSynthesis.speaking
-          )
-        )
-      ) {
-
-        stopLunaSpeaking();
-
-        voiceStatus.textContent =
-          "🎙 Listening to you...";
-
-      }
-
-
-      /*
-        Add final speech to the message we're building.
-      */
-
-      if (finalText.trim()) {
-
-        voiceTranscript =
-          (
-            voiceTranscript
-              ? voiceTranscript + " "
-              : ""
-          ) +
-          finalText.trim();
-
-      }
-
-
-      voiceInterimTranscript =
-        interimText.trim();
-
-
-      /*
-        Any detected speech means the user is
-        still talking, so restart the 3-second clock.
-      */
-
-      if (
-        finalText.trim() ||
-        interimText.trim()
-      ) {
-
-        scheduleVoiceSend();
-
-      }
-
-
-      if (
-        voiceTranscript.trim() &&
-        !speechPlaying
-      ) {
-
-        if (interimText.trim()) {
-
-          voiceStatus.textContent =
-            "🎙 Listening...";
-
-        } else {
-
-          voiceStatus.textContent =
-            "🎙 Keep talking or pause for 3 seconds...";
-
-        }
 
       }
 
@@ -3169,19 +3463,44 @@ if (SpeechRecognition) {
 
 
       /*
-        These errors are usually recoverable.
-      */
+       * A no-speech error is normal.
+       * Just restart the microphone.
+       */
 
       if (
         event.error === "no-speech"
       ) {
 
-        if (voiceMode) {
+        if (
+          voiceMode
+        ) {
 
-          voiceStatus.textContent =
-            "🎙 Listening...";
+          setTimeout(
+            () => {
 
-          restartRecognition();
+              if (
+                voiceMode &&
+                !recognitionActive
+              ) {
+
+                try {
+
+                  recognition.start();
+
+                } catch (error) {
+
+                  console.error(
+                    "Could not restart recognition:",
+                    error
+                  );
+
+                }
+
+              }
+
+            },
+            200
+          );
 
         }
 
@@ -3190,13 +3509,43 @@ if (SpeechRecognition) {
       }
 
 
+      /*
+       * Ignore harmless aborted/interrupted recognition errors
+       * and restart the recognizer.
+       */
+
       if (
-        event.error === "aborted"
+        event.error === "aborted" ||
+        event.error === "network"
       ) {
 
         if (voiceMode) {
 
-          restartRecognition();
+          setTimeout(
+            () => {
+
+              if (
+                voiceMode &&
+                !recognitionActive
+              ) {
+
+                try {
+
+                  recognition.start();
+
+                } catch (error) {
+
+                  console.error(
+                    error
+                  );
+
+                }
+
+              }
+
+            },
+            500
+          );
 
         }
 
@@ -3205,56 +3554,20 @@ if (SpeechRecognition) {
       }
 
 
-      if (
-        event.error === "audio-capture"
-      ) {
-
-        voiceStatus.textContent =
-          "🎙 Microphone unavailable.";
-
-        return;
-
-      }
+      voiceStatus.textContent =
+        "Voice recognition stopped.";
 
 
-      if (
-        event.error === "not-allowed"
-      ) {
-
-        voiceStatus.textContent =
-          "🎙 Microphone permission was denied.";
-
-        voiceMode =
-          false;
-
-        voiceCall.classList.remove(
-          "active"
-        );
-
-        setTimeout(
-          () => {
-
-            voiceStatus.classList.remove(
-              "visible"
-            );
-
-          },
-          2500
-        );
-
-        return;
-
-      }
+      voiceCall.classList.remove(
+        "active"
+      );
 
 
-      if (voiceMode) {
+      voiceMode =
+        false;
 
-        voiceStatus.textContent =
-          "🎙 Reconnecting microphone...";
 
-        restartRecognition();
-
-      }
+      clearUserSpeechTimer();
 
     };
 
@@ -3267,16 +3580,42 @@ if (SpeechRecognition) {
 
 
       /*
-        Chrome/Edge can occasionally end a continuous
-        recognition session on their own.
+       * Chrome/Edge may automatically end recognition
+       * even when continuous mode is enabled.
+       *
+       * Keep the voice call alive by restarting it.
+       */
 
-        As long as the voice call is active,
-        immediately start listening again.
-      */
+      if (
+        voiceMode
+      ) {
 
-      if (voiceMode) {
+        setTimeout(
+          () => {
 
-        restartRecognition();
+            if (
+              voiceMode &&
+              !recognitionActive
+            ) {
+
+              try {
+
+                recognition.start();
+
+              } catch (error) {
+
+                console.error(
+                  "Recognition restart failed:",
+                  error
+                );
+
+              }
+
+            }
+
+          },
+          200
+        );
 
       } else {
 
@@ -3299,7 +3638,7 @@ if (SpeechRecognition) {
    START VOICE CALL
    ========================================================= */
 
-function startVoiceCall() {
+async function startVoiceCall() {
 
   if (!recognition) {
 
@@ -3315,27 +3654,29 @@ function startVoiceCall() {
   unlockSpeech();
 
 
+  /*
+   * Prepare microphone echo/noise processing.
+   */
+
+  await prepareMicrophone();
+
+
+  resetUserVoiceBuffer();
+
+
   voiceMode =
     true;
-
-
-  voiceTranscript =
-    "";
-
-  voiceInterimTranscript =
-    "";
-
-
-  clearVoiceSilenceTimer();
 
 
   voiceCall.classList.add(
     "active"
   );
 
+
   voiceStatus.classList.add(
     "visible"
   );
+
 
   voiceStatus.textContent =
     "🎙 Listening...";
@@ -3343,16 +3684,20 @@ function startVoiceCall() {
 
   try {
 
-    recognition.start();
+    if (
+      !recognitionActive
+    ) {
+
+      recognition.start();
+
+    }
 
   } catch (error) {
 
-    console.debug(
-      "Recognition start:",
+    console.error(
+      "Could not start voice recognition:",
       error
     );
-
-    restartRecognition();
 
   }
 
@@ -3369,31 +3714,16 @@ function stopVoiceCall() {
     false;
 
 
-  clearVoiceSilenceTimer();
+  clearUserSpeechTimer();
 
 
-  if (recognitionRestartTimer) {
-
-    clearTimeout(
-      recognitionRestartTimer
-    );
-
-    recognitionRestartTimer =
-      null;
-
-  }
-
-
-  voiceTranscript =
-    "";
-
-  voiceInterimTranscript =
-    "";
+  resetUserVoiceBuffer();
 
 
   voiceStatus.classList.remove(
     "visible"
   );
+
 
   voiceCall.classList.remove(
     "active"
@@ -3404,17 +3734,17 @@ function stopVoiceCall() {
 
 
   if (
-    recognition &&
-    recognitionActive
+    recognition
   ) {
 
     try {
 
-      recognition.stop();
+      recognition.abort();
 
     } catch (error) {
 
       console.error(
+        "Could not stop recognition:",
         error
       );
 
@@ -3462,6 +3792,18 @@ async function sendMessage(
   if (!text) return;
 
 
+  /*
+   * If this came from the voice system,
+   * clear any leftover silence timer.
+   */
+
+  if (fromVoice) {
+
+    clearUserSpeechTimer();
+
+  }
+
+
   if (!currentChat) {
 
     createChat();
@@ -3473,22 +3815,11 @@ async function sendMessage(
     getCurrentChat();
 
 
-  /*
-    If this was a voice message, make sure Luna
-    is no longer speaking before processing it.
-  */
-
-  if (fromVoice) {
-
-    stopLunaSpeaking();
-
-  }
-
-
   addMessage(
     "user",
     text
   );
+
 
   saveMessage(
     "user",
@@ -3616,15 +3947,10 @@ async function sendMessage(
 
 
     /*
-      In voice mode, Luna speaks the answer.
-      Recognition stays active so the user can
-      interrupt her while she is talking.
-    */
+     * Voice responses are spoken automatically.
+     */
 
-    if (
-      fromVoice &&
-      voiceMode
-    ) {
+    if (fromVoice) {
 
       speakAsLuna(
         answer
@@ -3654,14 +3980,29 @@ async function sendMessage(
       stopLunaSpeaking();
 
 
-      if (voiceMode) {
+      voiceStatus.textContent =
+        "Voice call stopped.";
 
-        voiceStatus.textContent =
-          "🎙 Listening...";
 
-        restartRecognition();
+      voiceMode =
+        false;
 
-      }
+
+      voiceCall.classList.remove(
+        "active"
+      );
+
+
+      setTimeout(
+        () => {
+
+          voiceStatus.classList.remove(
+            "visible"
+          );
+
+        },
+        1500
+      );
 
     }
 
