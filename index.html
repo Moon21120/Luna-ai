@@ -10,6 +10,47 @@
 
   <title>Luna AI</title>
 
+  <!-- =========================================================
+       MATHJAX
+       ========================================================= -->
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [
+          ["\\(", "\\)"],
+          ["$", "$"]
+        ],
+        displayMath: [
+          ["\\[", "\\]"],
+          ["$$", "$$"]
+        ],
+        processEscapes: true,
+        processEnvironments: true
+      },
+
+      options: {
+        skipHtmlTags: [
+          "script",
+          "noscript",
+          "style",
+          "textarea",
+          "pre",
+          "code"
+        ]
+      },
+
+      startup: {
+        typeset: false
+      }
+    };
+  </script>
+
+  <script
+    async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+  ></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -45,7 +86,9 @@
       min-height: 100dvh;
     }
 
-    /* SIDEBAR */
+    /* =========================================================
+       SIDEBAR
+       ========================================================= */
 
     .sidebar {
       width: 270px;
@@ -143,8 +186,6 @@
       min-height: 0;
     }
 
-    /* DELETE ALL */
-
     .delete-all {
       width: 100%;
       border: 1px solid #4b2d35;
@@ -160,8 +201,6 @@
       background: #2c1c23;
       border-color: #70404b;
     }
-
-    /* CHAT ROW */
 
     .chat-row {
       position: relative;
@@ -215,8 +254,6 @@
       background: #26364b;
       color: white;
     }
-
-    /* CHAT MENU */
 
     .chat-menu {
       position: absolute;
@@ -277,7 +314,9 @@
       background: #65d391;
     }
 
-    /* MOBILE MENU */
+    /* =========================================================
+       MOBILE MENU
+       ========================================================= */
 
     .mobile-menu {
       display: none;
@@ -300,7 +339,9 @@
       display: none;
     }
 
-    /* MAIN */
+    /* =========================================================
+       MAIN
+       ========================================================= */
 
     .main {
       flex: 1;
@@ -310,8 +351,6 @@
       flex-direction: column;
       background: #0b111a;
     }
-
-    /* TOP BAR */
 
     .topbar {
       height: 64px;
@@ -339,8 +378,6 @@
       display: block;
     }
 
-    /* VOICE CALL BUTTON */
-
     .voice-call {
       margin-left: auto;
       border: 1px solid #304158;
@@ -365,7 +402,9 @@
       border-color: #526987;
     }
 
-    /* CHAT */
+    /* =========================================================
+       CHAT
+       ========================================================= */
 
     .chat {
       flex: 1;
@@ -381,8 +420,6 @@
       max-width: 900px;
       margin: 0 auto;
     }
-
-    /* WELCOME */
 
     .welcome {
       text-align: center;
@@ -446,7 +483,9 @@
       color: #8290a3;
     }
 
-    /* MESSAGES */
+    /* =========================================================
+       MESSAGES
+       ========================================================= */
 
     .messages {
       display: flex;
@@ -513,6 +552,7 @@
       white-space: pre-wrap;
       overflow-wrap: anywhere;
       word-break: break-word;
+      min-width: 0;
     }
 
     .user .message-content {
@@ -526,7 +566,9 @@
       border-top-right-radius: 4px;
     }
 
-    /* MARKDOWN */
+    /* =========================================================
+       MARKDOWN
+       ========================================================= */
 
     .message-content strong {
       font-weight: 700;
@@ -586,6 +628,21 @@
       text-decoration: underline;
     }
 
+    /* =========================================================
+       MATH
+       ========================================================= */
+
+    .message-content mjx-container {
+      overflow-x: auto;
+      overflow-y: hidden;
+      max-width: 100%;
+    }
+
+    .message-content mjx-container[display="true"] {
+      margin: 12px 0 !important;
+      padding: 4px 0;
+    }
+
     .thinking {
       color: #7f8da0;
       font-style: italic;
@@ -621,10 +678,6 @@
       border-radius: 16px;
       padding: 9px;
     }
-
-    /* =========================================================
-       + TOOLS BUTTON
-       ========================================================= */
 
     .tools-wrapper {
       position: relative;
@@ -826,8 +879,6 @@
       text-align: center;
     }
 
-    /* MOON */
-
     .moon-container {
       width: 280px;
       height: 280px;
@@ -924,8 +975,6 @@
       }
     }
 
-    /* CALL STATUS */
-
     .call-status {
       margin-top: 20px;
       min-height: 25px;
@@ -945,8 +994,6 @@
     .call-status.thinking {
       color: #d1b9ff;
     }
-
-    /* CALL CONTROLS */
 
     .call-controls {
       display: flex;
@@ -995,10 +1042,11 @@
       text-align: center;
     }
 
-    /* TABLET */
+    /* =========================================================
+       TABLET
+       ========================================================= */
 
     @media (max-width: 900px) {
-
       .sidebar {
         width: 230px;
         padding: 14px;
@@ -1023,10 +1071,11 @@
       }
     }
 
-    /* MOBILE */
+    /* =========================================================
+       MOBILE
+       ========================================================= */
 
     @media (max-width: 700px) {
-
       html,
       body {
         width: 100%;
@@ -1243,7 +1292,6 @@
     }
 
     @media (max-width: 380px) {
-
       .sidebar {
         width: 86vw;
       }
@@ -1518,8 +1566,6 @@
         id="form"
       >
 
-        <!-- TOOLS -->
-
         <div class="tools-wrapper">
 
           <button
@@ -1623,7 +1669,7 @@
 
 
 <!-- =========================================================
-     FULL VOICE CALL SCREEN
+     VOICE CALL SCREEN
      ========================================================= -->
 
 <div
@@ -1645,7 +1691,6 @@
 
   </div>
 
-
   <div class="moon-container">
 
     <div class="moon-glow"></div>
@@ -1666,14 +1711,12 @@
 
   </div>
 
-
   <div
     class="call-status listening"
     id="callStatus"
   >
     🎙 Listening...
   </div>
-
 
   <div class="call-controls">
 
@@ -1698,7 +1741,6 @@
     </button>
 
   </div>
-
 
   <div class="call-hint">
     Luna won't listen while she is speaking.
@@ -1731,7 +1773,7 @@ let conversation = [];
 
 
 /* =========================================================
-   LUNA TOOLS
+   TOOLS
    ========================================================= */
 
 let thinkHarderEnabled = false;
@@ -1816,6 +1858,38 @@ const webSearchCheck =
 
 
 /* =========================================================
+   MATHJAX TYPESCRIPT / RENDER HELPER
+   ========================================================= */
+
+async function renderMath(element) {
+
+  if (
+    !element ||
+    !window.MathJax ||
+    !window.MathJax.typesetPromise
+  ) {
+    return;
+  }
+
+  try {
+
+    await window.MathJax.typesetPromise([
+      element
+    ]);
+
+  } catch (error) {
+
+    console.error(
+      "Math rendering error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
    TOOLS MENU
    ========================================================= */
 
@@ -1876,7 +1950,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   THINK HARDER TOGGLE
+   THINK HARDER
    ========================================================= */
 
 function updateThinkHarderButton() {
@@ -1913,7 +1987,7 @@ thinkHarderButton.addEventListener(
 
 
 /* =========================================================
-   WEB SEARCH TOGGLE
+   WEB SEARCH
    ========================================================= */
 
 function updateWebSearchButton() {
@@ -2032,15 +2106,13 @@ function saveMemory() {
 
 
 /* =========================================================
-   DELETE ALL CHATS
+   DELETE ALL
    ========================================================= */
 
 function deleteAllChats() {
 
   if (!chats.length) {
-
     return;
-
   }
 
   const confirmed =
@@ -2049,9 +2121,7 @@ function deleteAllChats() {
     );
 
   if (!confirmed) {
-
     return;
-
   }
 
   chats = [];
@@ -2131,7 +2201,7 @@ function getCurrentChat() {
 
 
 /* =========================================================
-   OPEN OLD CHAT
+   OPEN CHAT
    ========================================================= */
 
 function openChat(id) {
@@ -2150,13 +2220,11 @@ function openChat(id) {
   conversation =
     chat.messages.map(
       message => ({
-
         role:
           message.role,
 
         content:
           message.content
-
       })
     );
 
@@ -2184,6 +2252,7 @@ function deleteChat(id) {
   if (currentChat === id) {
 
     currentChat = null;
+
     conversation = [];
 
   }
@@ -2281,17 +2350,11 @@ function renderSidebar() {
         };
 
 
-      row.appendChild(
-        button
-      );
+      row.appendChild(button);
 
-      row.appendChild(
-        options
-      );
+      row.appendChild(options);
 
-      savedChats.appendChild(
-        row
-      );
+      savedChats.appendChild(row);
 
     }
   );
@@ -2300,7 +2363,7 @@ function renderSidebar() {
 
 
 /* =========================================================
-   CHAT OPTIONS MENU
+   CHAT OPTIONS
    ========================================================= */
 
 function showChatMenu(
@@ -2397,7 +2460,7 @@ function showChatMenu(
 
 
 /* =========================================================
-   MARKDOWN
+   HTML ESCAPING
    ========================================================= */
 
 function escapeHTML(text) {
@@ -2412,20 +2475,27 @@ function escapeHTML(text) {
 }
 
 
+/* =========================================================
+   MARKDOWN + MATH
+   ========================================================= */
+
 function formatMarkdown(text) {
 
   if (
     text === null ||
     text === undefined
   ) {
-
     return "";
-
   }
+
 
   let value =
     escapeHTML(text);
 
+
+  /*
+   * Protect code blocks first.
+   */
 
   const codeBlocks = [];
 
@@ -2447,6 +2517,10 @@ function formatMarkdown(text) {
     );
 
 
+  /*
+   * Protect inline code.
+   */
+
   const inlineCode = [];
 
   value =
@@ -2466,6 +2540,33 @@ function formatMarkdown(text) {
       }
     );
 
+
+  /*
+   * Protect display and inline math BEFORE
+   * Markdown processing.
+   */
+
+  const mathBlocks = [];
+
+  value =
+    value.replace(
+      /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g,
+      match => {
+
+        const index =
+          mathBlocks.length;
+
+        mathBlocks.push(match);
+
+        return `@@MATHBLOCK${index}@@`;
+
+      }
+    );
+
+
+  /*
+   * Markdown.
+   */
 
   value =
     value.replace(
@@ -2488,21 +2589,9 @@ function formatMarkdown(text) {
     );
 
 
-  value =
-    value.replace(
-      /@@INLINECODE(\d+)@@/g,
-      (match, index) =>
-        inlineCode[Number(index)]
-    );
-
-
-  value =
-    value.replace(
-      /@@CODEBLOCK(\d+)@@/g,
-      (match, index) =>
-        codeBlocks[Number(index)]
-    );
-
+  /*
+   * Unordered lists.
+   */
 
   value =
     value.replace(
@@ -2520,6 +2609,10 @@ function formatMarkdown(text) {
     );
 
 
+  /*
+   * Ordered lists.
+   */
+
   value =
     value.replace(
       /(?:^|\n)\d+\.\s+(.+)(?=\n|$)/g,
@@ -2527,6 +2620,46 @@ function formatMarkdown(text) {
         `<li>${item}</li>`
     );
 
+
+  /*
+   * Restore inline code.
+   */
+
+  value =
+    value.replace(
+      /@@INLINECODE(\d+)@@/g,
+      (match, index) =>
+        inlineCode[Number(index)]
+    );
+
+
+  /*
+   * Restore code blocks.
+   */
+
+  value =
+    value.replace(
+      /@@CODEBLOCK(\d+)@@/g,
+      (match, index) =>
+        codeBlocks[Number(index)]
+    );
+
+
+  /*
+   * Restore math AFTER Markdown.
+   */
+
+  value =
+    value.replace(
+      /@@MATHBLOCK(\d+)@@/g,
+      (match, index) =>
+        mathBlocks[Number(index)]
+    );
+
+
+  /*
+   * New lines.
+   */
 
   value =
     value.replace(
@@ -2668,21 +2801,27 @@ function addMessageElement(
   }
 
 
-  box.appendChild(
-    avatar
-  );
+  box.appendChild(avatar);
 
-  box.appendChild(
-    content
-  );
+  box.appendChild(content);
 
-  message.appendChild(
-    box
-  );
+  message.appendChild(box);
 
-  messages.appendChild(
-    message
-  );
+  messages.appendChild(message);
+
+
+  /*
+   * Render LaTeX after the element exists in the DOM.
+   */
+
+  if (
+    extraClass !== "thinking"
+  ) {
+
+    renderMath(content);
+
+  }
+
 
   return message;
 
@@ -2941,6 +3080,12 @@ function splitSpeechText(text) {
 
   const clean =
     String(text)
+      /*
+       * Remove LaTeX commands from spoken output.
+       */
+      .replace(/\$\$[\s\S]*?\$\$/g, " ")
+      .replace(/\\\[[\s\S]*?\\\]/g, " ")
+      .replace(/\\\([\s\S]*?\\\)/g, " ")
       .replace(/\s+/g, " ")
       .trim();
 
@@ -3051,6 +3196,7 @@ function speakNextChunk(
   ) {
 
     speechPlaying = false;
+
     return;
 
   }
@@ -3072,7 +3218,8 @@ function speakNextChunk(
 
           if (
             voiceMode &&
-            !speechPlaying
+            !speechPlaying &&
+            !window.speechSynthesis.speaking
           ) {
 
             startRecognitionSafely();
@@ -3151,6 +3298,7 @@ function speakNextChunk(
       ) {
 
         speechPlaying = false;
+
         return;
 
       }
@@ -3207,9 +3355,7 @@ function speakNextChunk(
 
   } catch (error) {
 
-    console.error(
-      error
-    );
+    console.error(error);
 
     speechPlaying = false;
 
@@ -3436,7 +3582,9 @@ if (SpeechRecognition) {
         event.error === "not-allowed"
       ) {
 
-        if (event.error === "not-allowed") {
+        if (
+          event.error === "not-allowed"
+        ) {
 
           callStatus.className =
             "call-status";
@@ -3590,9 +3738,7 @@ function stopRecognition() {
 
     } catch (error) {
 
-      console.error(
-        error
-      );
+      console.error(error);
 
     }
 
@@ -3693,7 +3839,7 @@ function stopMoonCycle() {
 
 
 /* =========================================================
-   OPEN VOICE CALL SCREEN
+   VOICE SCREEN
    ========================================================= */
 
 function openVoiceScreen() {
@@ -3706,10 +3852,6 @@ function openVoiceScreen() {
 
 }
 
-
-/* =========================================================
-   CLOSE VOICE CALL SCREEN
-   ========================================================= */
 
 function closeVoiceScreen() {
 
@@ -3895,10 +4037,6 @@ async function sendMessage(
   }
 
 
-  const chat =
-    getCurrentChat();
-
-
   addMessage(
     "user",
     text
@@ -3967,20 +4105,6 @@ async function sendMessage(
 
 
   try {
-
-    /*
-     * The backend receives these two flags.
-     *
-     * thinkHarder:
-     *     Tells the backend to use Ollama's
-     *     deeper reasoning/thinking capability.
-     *
-     * webSearch:
-     *     Tells the backend to search the web
-     *     and provide the search context to Ollama.
-     *
-     * Both can be true simultaneously.
-     */
 
     const response =
       await fetch(
@@ -4064,7 +4188,10 @@ async function sendMessage(
     });
 
 
-    if (fromVoice && voiceMode) {
+    if (
+      fromVoice &&
+      voiceMode
+    ) {
 
       speakAsLuna(
         answer
