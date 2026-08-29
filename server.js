@@ -109,7 +109,9 @@ async function searchWeb(query, apiKey) {
 
     throw new Error(
       data.error ||
-      "Web search returned HTTP " + response.status + "."
+      "Web search returned HTTP " +
+      response.status +
+      "."
     );
   }
 
@@ -195,21 +197,28 @@ app.post("/api/chat", async (req, res) => {
       : [];
 
     const thinkHarder =
-      req.body.thinkHarder === true;
+      req.body.thinkHarder === true ||
+      req.body.thinkHarder === "true" ||
+      req.body.thinkHarder === 1;
 
     /*
      * WEB SEARCH TOGGLE
      *
-     * The search is OFF unless one of these values
-     * is explicitly boolean true.
+     * Search ONLY happens when the frontend explicitly
+     * sends the toggle as true.
      *
-     * This supports the different names the frontend
-     * might use without accidentally turning search on.
+     * Supports:
+     *   true
+     *   "true"
+     *   1
+     *
+     * False, "false", 0, undefined, etc. = OFF.
      */
+
     const searchWebEnabled =
       req.body.searchWeb === true ||
-      req.body.webSearch === true ||
-      req.body.search === true;
+      req.body.searchWeb === "true" ||
+      req.body.searchWeb === 1;
 
     if (messages.length === 0) {
       return res.status(400).json({
@@ -218,7 +227,9 @@ app.post("/api/chat", async (req, res) => {
     }
 
 
-    /* MEMORY */
+    /*
+     * MEMORY
+     */
 
     let memoryContext = "";
 
@@ -245,7 +256,9 @@ app.post("/api/chat", async (req, res) => {
     }
 
 
-    /* CURRENT USER MESSAGE */
+    /*
+     * CURRENT USER MESSAGE
+     */
 
     const latestUserMessage =
       [...messages]
@@ -255,31 +268,30 @@ app.post("/api/chat", async (req, res) => {
         });
 
     const userQuery =
-      typeof latestUserMessage?.content === "string"
-        ? latestUserMessage.content.trim()
-        : "";
+      latestUserMessage?.content || "";
 
 
-    /* WEB SEARCH */
+    /*
+     * WEB SEARCH
+     *
+     * THIS IS THE ONLY PLACE WEB SEARCH IS CALLED.
+     *
+     * If the toggle is OFF, searchWeb() is NEVER called.
+     */
 
     let webContext = "";
 
-    /*
-     * IMPORTANT:
-     *
-     * searchWeb() is ONLY called inside this condition.
-     *
-     * Therefore the server will NOT contact the web-search
-     * endpoint at all when the toggle is OFF.
-     */
-    if (searchWebEnabled === true && userQuery !== "") {
+    if (searchWebEnabled && userQuery.trim()) {
       try {
+        console.log("WEB SEARCH TOGGLE: ON");
+
         const searchData = await searchWeb(
           userQuery,
           apiKey
         );
 
-        webContext = formatSearchResults(searchData);
+        webContext =
+          formatSearchResults(searchData);
 
       } catch (searchError) {
         console.error(
@@ -294,10 +306,14 @@ app.post("/api/chat", async (req, res) => {
           "Do not pretend that search results were found."
         ].join("\n");
       }
+    } else {
+      console.log("WEB SEARCH TOGGLE: OFF");
     }
 
 
-    /* THINK HARDER */
+    /*
+     * THINK HARDER
+     */
 
     let thinkingContext = "";
 
@@ -320,7 +336,9 @@ app.post("/api/chat", async (req, res) => {
     });
 
 
-    /* OLLAMA CHAT */
+    /*
+     * OLLAMA CHAT
+     */
 
     const response = await fetch(
       "https://ollama.com/api/chat",
@@ -403,7 +421,9 @@ app.post("/api/chat", async (req, res) => {
 });
 
 
-/* HEALTH CHECK */
+/*
+ * HEALTH CHECK
+ */
 
 app.get("/api/health", function(req, res) {
   res.json({
@@ -413,7 +433,9 @@ app.get("/api/health", function(req, res) {
 });
 
 
-/* HOME */
+/*
+ * HOME
+ */
 
 app.get("/", function(req, res) {
   res.sendFile(
@@ -422,11 +444,12 @@ app.get("/", function(req, res) {
 });
 
 
-/* START SERVER */
+/*
+ * START SERVER
+ */
 
 app.listen(PORT, function() {
   console.log(
     "Luna AI running on port " + PORT
   );
 });
-```
