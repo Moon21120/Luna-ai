@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -37,8 +38,6 @@
       cursor: pointer;
     }
 
-    /* APP */
-
     .app {
       display: flex;
       width: 100%;
@@ -56,7 +55,7 @@
       padding: 18px;
       display: flex;
       flex-direction: column;
-      z-index: 1000;
+      z-index: 1001;
     }
 
     .brand {
@@ -136,24 +135,93 @@
       min-height: 0;
     }
 
-    .saved-chat {
+    /* CHAT ROW */
+
+    .chat-row {
+      position: relative;
+      display: flex;
+      align-items: center;
       width: 100%;
+      margin-bottom: 2px;
+      border-radius: 8px;
+    }
+
+    .chat-row:hover,
+    .chat-row.active {
+      background: #182538;
+    }
+
+    .saved-chat {
+      flex: 1;
+      min-width: 0;
       border: 0;
       background: transparent;
       color: #cbd5e1;
       text-align: left;
       padding: 10px;
+      padding-right: 40px;
       border-radius: 8px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 2px;
     }
 
-    .saved-chat:hover,
-    .saved-chat.active {
-      background: #182538;
+    .chat-row:hover .saved-chat,
+    .chat-row.active .saved-chat {
       color: white;
+    }
+
+    .chat-options {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: #9aa8ba;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .chat-options:hover {
+      background: #26364b;
+      color: white;
+    }
+
+    /* CHAT MENU */
+
+    .chat-menu {
+      position: absolute;
+      z-index: 2000;
+      right: 8px;
+      top: 38px;
+      width: 190px;
+      background: #172335;
+      border: 1px solid #304158;
+      border-radius: 10px;
+      padding: 5px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .45);
+    }
+
+    .chat-menu button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #e1e7ef;
+      text-align: left;
+      padding: 10px;
+      border-radius: 7px;
+      font-size: 13px;
+    }
+
+    .chat-menu button:hover {
+      background: #26364b;
+    }
+
+    .chat-menu .delete-option {
+      color: #ff8585;
     }
 
     .empty-history {
@@ -216,8 +284,6 @@
       flex-direction: column;
       background: #0b111a;
     }
-
-    /* TOP BAR */
 
     .topbar {
       height: 64px;
@@ -503,24 +569,17 @@
         min-height: 100dvh;
       }
 
-      /* MOBILE SIDEBAR */
-
       .sidebar {
         position: fixed;
         z-index: 1001;
         left: 0;
         top: 0;
         bottom: 0;
-
         width: min(300px, 85vw);
-
         display: flex;
-
         transform: translateX(-105%);
         transition: transform 0.25s ease;
-
-        box-shadow: 12px 0 35px rgba(0, 0, 0, 0.45);
-
+        box-shadow: 12px 0 35px rgba(0, 0, 0, .45);
         overflow-y: auto;
       }
 
@@ -528,21 +587,15 @@
         transform: translateX(0);
       }
 
-      /* DARK BACKDROP */
-
       .sidebar-overlay {
         position: fixed;
         z-index: 1000;
         inset: 0;
-
         display: block;
-
-        background: rgba(0, 0, 0, 0.55);
-
+        background: rgba(0, 0, 0, .55);
         opacity: 0;
         pointer-events: none;
-
-        transition: opacity 0.25s ease;
+        transition: opacity .25s ease;
       }
 
       .sidebar-overlay.visible {
@@ -550,15 +603,11 @@
         pointer-events: auto;
       }
 
-      /* MAIN */
-
       .main {
         width: 100%;
         height: 100%;
         min-width: 0;
       }
-
-      /* TOP BAR */
 
       .topbar {
         height: 56px;
@@ -578,20 +627,15 @@
         font-size: 21px;
       }
 
-      /* CHAT */
-
       .chat {
         width: 100%;
         padding: 22px 12px 155px;
-        overflow-x: hidden;
       }
 
       .chat-inner {
         width: 100%;
         max-width: none;
       }
-
-      /* WELCOME */
 
       .welcome {
         margin: 30px auto 25px;
@@ -600,22 +644,17 @@
 
       .welcome-logo {
         font-size: 44px;
-        margin-bottom: 8px;
       }
 
       .welcome h1 {
         font-size: 28px;
-        line-height: 1.2;
       }
 
       .welcome p {
         font-size: 14px;
         line-height: 1.5;
         margin: 10px auto 22px;
-        max-width: 360px;
       }
-
-      /* CARDS */
 
       .cards {
         grid-template-columns: 1fr;
@@ -627,8 +666,6 @@
         padding: 15px;
         min-height: 70px;
       }
-
-      /* MESSAGES */
 
       .messages {
         gap: 20px;
@@ -651,10 +688,7 @@
         padding: 9px 11px;
         font-size: 14px;
         line-height: 1.55;
-        border-radius: 13px;
       }
-
-      /* COMPOSER */
 
       .composer-area {
         left: 0;
@@ -696,8 +730,6 @@
         margin-top: 5px;
       }
     }
-
-    /* VERY SMALL PHONES */
 
     @media (max-width: 380px) {
 
@@ -743,14 +775,10 @@
 
 <div class="app">
 
-  <!-- MOBILE SIDEBAR BACKDROP -->
-
   <div
     class="sidebar-overlay"
     id="sidebarOverlay"
   ></div>
-
-  <!-- SIDEBAR -->
 
   <aside
     class="sidebar"
@@ -829,8 +857,6 @@
 
   </aside>
 
-  <!-- MAIN -->
-
   <main class="main">
 
     <header class="topbar">
@@ -857,8 +883,6 @@
       </div>
 
     </header>
-
-    <!-- CHAT -->
 
     <section
       class="chat"
@@ -940,8 +964,6 @@
 
     </section>
 
-    <!-- COMPOSER -->
-
     <div class="composer-area">
 
       <form
@@ -980,6 +1002,8 @@
 
 <script>
 
+/* STORAGE */
+
 const STORAGE_KEY = "luna_chats";
 const MEMORY_KEY = "luna_memory";
 
@@ -995,6 +1019,9 @@ let memory =
 
 let currentChat = null;
 let conversation = [];
+
+
+/* ELEMENTS */
 
 const form =
   document.getElementById("form");
@@ -1105,20 +1132,24 @@ function saveMemory() {
 }
 
 
-/* CHATS */
+/* CHAT CREATION */
 
 function createChat() {
 
   const chat = {
 
     id:
-      Date.now().toString(),
+      Date.now().toString() +
+      Math.random().toString(36).slice(2),
 
     title:
       "New chat",
 
     messages:
-      []
+      [],
+
+    remembered:
+      false
 
   };
 
@@ -1140,6 +1171,13 @@ function createChat() {
 }
 
 
+function newChat() {
+
+  createChat();
+
+}
+
+
 function getCurrentChat() {
 
   return chats.find(
@@ -1150,12 +1188,7 @@ function getCurrentChat() {
 }
 
 
-function newChat() {
-
-  createChat();
-
-}
-
+/* OPEN OLD CHAT */
 
 function openChat(id) {
 
@@ -1192,6 +1225,117 @@ function openChat(id) {
 }
 
 
+/* DELETE CHAT */
+
+function deleteChat(id) {
+
+  const chat =
+    chats.find(
+      chat =>
+        chat.id === id
+    );
+
+  if (!chat) return;
+
+  chats =
+    chats.filter(
+      chat =>
+        chat.id !== id
+    );
+
+  if (currentChat === id) {
+
+    currentChat = null;
+    conversation = [];
+
+    /*
+      Start a completely fresh chat.
+      The deleted chat is gone.
+    */
+
+    createChat();
+
+  } else {
+
+    saveChats();
+
+    renderSidebar();
+
+  }
+
+}
+
+
+/* REMEMBER CHAT */
+
+function rememberChat(id) {
+
+  const chat =
+    chats.find(
+      chat =>
+        chat.id === id
+    );
+
+  if (!chat) return;
+
+  if (
+    !chat.messages ||
+    chat.messages.length === 0
+  ) {
+
+    alert(
+      "This chat has no messages to remember yet."
+    );
+
+    return;
+
+  }
+
+  /*
+    Remove any previous memory entry
+    belonging to this chat.
+  */
+
+  memory =
+    memory.filter(
+      item =>
+        item.chatId !== id
+    );
+
+  /*
+    Save the entire conversation
+    as a remembered conversation.
+  */
+
+  memory.push({
+
+    chatId:
+      id,
+
+    title:
+      chat.title,
+
+    messages:
+      chat.messages,
+
+    time:
+      Date.now()
+
+  });
+
+  chat.remembered = true;
+
+  saveMemory();
+  saveChats();
+  renderSidebar();
+
+  alert(
+    "Luna will remember this chat."
+  );
+
+}
+
+
 /* SIDEBAR */
 
 function renderSidebar() {
@@ -1210,32 +1354,227 @@ function renderSidebar() {
   chats.forEach(
     chat => {
 
-      const button =
+      const row =
         document.createElement(
-          "button"
+          "div"
         );
 
-      button.className =
-        "saved-chat" +
+      row.className =
+        "chat-row" +
         (
           chat.id === currentChat
             ? " active"
             : ""
         );
 
+
+      /* CHAT BUTTON */
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      button.className =
+        "saved-chat";
+
       button.textContent =
-        chat.title ||
-        "New chat";
+        (
+          chat.remembered
+            ? "★ "
+            : ""
+        ) +
+        (
+          chat.title ||
+          "New chat"
+        );
 
       button.onclick =
         () =>
           openChat(chat.id);
 
-      savedChats.appendChild(
+
+      /* THREE DOT BUTTON */
+
+      const options =
+        document.createElement(
+          "button"
+        );
+
+      options.className =
+        "chat-options";
+
+      options.type =
+        "button";
+
+      options.textContent =
+        "⋯";
+
+      options.setAttribute(
+        "aria-label",
+        "Chat options"
+      );
+
+
+      options.onclick =
+        event => {
+
+          event.stopPropagation();
+
+          showChatMenu(
+            row,
+            chat
+          );
+
+        };
+
+
+      row.appendChild(
         button
       );
 
+      row.appendChild(
+        options
+      );
+
+      savedChats.appendChild(
+        row
+      );
+
     }
+  );
+
+}
+
+
+/* CHAT OPTIONS MENU */
+
+function showChatMenu(
+  row,
+  chat
+) {
+
+  document
+    .querySelectorAll(".chat-menu")
+    .forEach(
+      menu =>
+        menu.remove()
+    );
+
+  const menu =
+    document.createElement(
+      "div"
+    );
+
+  menu.className =
+    "chat-menu";
+
+
+  /* REMEMBER */
+
+  const rememberButton =
+    document.createElement(
+      "button"
+    );
+
+  rememberButton.textContent =
+    chat.remembered
+      ? "✓ Remembered"
+      : "🧠 Remember this chat";
+
+  rememberButton.onclick =
+    event => {
+
+      event.stopPropagation();
+
+      menu.remove();
+
+      if (!chat.remembered) {
+
+        rememberChat(
+          chat.id
+        );
+
+      }
+
+    };
+
+
+  /* DELETE */
+
+  const deleteButton =
+    document.createElement(
+      "button"
+    );
+
+  deleteButton.className =
+    "delete-option";
+
+  deleteButton.textContent =
+    "🗑 Delete chat";
+
+  deleteButton.onclick =
+    event => {
+
+      event.stopPropagation();
+
+      menu.remove();
+
+      const confirmed =
+        confirm(
+          "Delete this chat permanently?"
+        );
+
+      if (confirmed) {
+
+        deleteChat(
+          chat.id
+        );
+
+      }
+
+    };
+
+
+  menu.appendChild(
+    rememberButton
+  );
+
+  menu.appendChild(
+    deleteButton
+  );
+
+  row.appendChild(
+    menu
+  );
+
+
+  /*
+    Close the menu when clicking elsewhere.
+  */
+
+  setTimeout(
+    () => {
+
+      document.addEventListener(
+        "click",
+        function closeMenu() {
+
+          menu.remove();
+
+          document.removeEventListener(
+            "click",
+            closeMenu
+          );
+
+        },
+        {
+          once: true
+        }
+      );
+
+    },
+    0
   );
 
 }
@@ -1295,6 +1634,7 @@ function addMessageElement(
   message.className =
     `message ${role} ${extraClass}`;
 
+
   const box =
     document.createElement(
       "div"
@@ -1302,6 +1642,7 @@ function addMessageElement(
 
   box.className =
     "message-box";
+
 
   const avatar =
     document.createElement(
@@ -1316,6 +1657,7 @@ function addMessageElement(
       ? "●"
       : "☾";
 
+
   const content =
     document.createElement(
       "div"
@@ -1326,6 +1668,7 @@ function addMessageElement(
 
   content.textContent =
     text;
+
 
   box.appendChild(
     avatar
@@ -1381,7 +1724,7 @@ function scrollToBottom() {
 }
 
 
-/* SAVE MESSAGES */
+/* SAVE MESSAGE */
 
 function saveMessage(
   role,
@@ -1403,6 +1746,7 @@ function saveMessage(
 
   });
 
+
   if (
     role === "user" &&
     chat.title === "New chat"
@@ -1410,7 +1754,10 @@ function saveMessage(
 
     chat.title =
       content.length > 32
-        ? content.substring(0, 32) + "..."
+        ? content.substring(
+            0,
+            32
+          ) + "..."
         : content;
 
   }
@@ -1424,32 +1771,25 @@ function saveMessage(
 
 /* MEMORY */
 
-function updateMemory(
-  userText,
-  assistantText
-) {
+function buildMemoryForLuna() {
 
-  memory.push({
+  /*
+    Only conversations that the user
+    specifically selected "Remember"
+    are sent as memory.
+  */
 
-    user:
-      userText,
+  return memory.map(
+    item => ({
 
-    luna:
-      assistantText,
+      title:
+        item.title,
 
-    time:
-      Date.now()
+      messages:
+        item.messages
 
-  });
-
-  if (memory.length > 30) {
-
-    memory =
-      memory.slice(-30);
-
-  }
-
-  saveMemory();
+    })
+  );
 
 }
 
@@ -1463,14 +1803,22 @@ async function sendMessage(text) {
 
   if (!text) return;
 
+
+  /*
+    If there isn't an active chat,
+    make a fresh one.
+  */
+
   if (!currentChat) {
 
     createChat();
 
   }
 
+
   const chat =
     getCurrentChat();
+
 
   addMessage(
     "user",
@@ -1482,6 +1830,7 @@ async function sendMessage(text) {
     text
   );
 
+
   conversation.push({
 
     role:
@@ -1492,6 +1841,7 @@ async function sendMessage(text) {
 
   });
 
+
   input.value =
     "";
 
@@ -1501,12 +1851,14 @@ async function sendMessage(text) {
   sendButton.disabled =
     true;
 
+
   const thinking =
     addMessageElement(
       "assistant",
       "Thinking...",
       "thinking"
     );
+
 
   thinking
     .querySelector(
@@ -1516,7 +1868,9 @@ async function sendMessage(text) {
       "thinking"
     );
 
+
   scrollToBottom();
+
 
   try {
 
@@ -1542,17 +1896,20 @@ async function sendMessage(text) {
                 conversation,
 
               memory:
-                memory
+                buildMemoryForLuna()
 
             })
 
         }
       );
 
+
     const data =
       await response.json();
 
+
     thinking.remove();
+
 
     if (!response.ok) {
 
@@ -1563,20 +1920,24 @@ async function sendMessage(text) {
 
     }
 
+
     const answer =
       data.message?.content ||
       data.response ||
       "Luna didn't return a response.";
+
 
     addMessage(
       "assistant",
       answer
     );
 
+
     saveMessage(
       "assistant",
       answer
     );
+
 
     conversation.push({
 
@@ -1588,12 +1949,14 @@ async function sendMessage(text) {
 
     });
 
-    updateMemory(
-      text,
-      answer
-    );
 
   } catch (error) {
+
+    console.error(
+      "Luna error:",
+      error
+    );
+
 
     thinking
       .querySelector(
@@ -1602,9 +1965,6 @@ async function sendMessage(text) {
       .textContent =
         "Luna couldn't respond right now.";
 
-    console.error(
-      error
-    );
 
   } finally {
 
@@ -1685,38 +2045,31 @@ input.addEventListener(
 );
 
 
-/* INITIAL STATE */
+/* STARTUP */
+
+/*
+  IMPORTANT:
+  Do NOT automatically open the
+  previous chat.
+
+  Every time the website is opened,
+  Luna starts with a new conversation.
+*/
 
 function loadInitialState() {
 
-  if (chats.length > 0) {
+  currentChat = null;
 
-    currentChat =
-      chats[0].id;
+  conversation = [];
 
-    conversation =
-      chats[0].messages.map(
-        message => ({
+  renderSidebar();
 
-          role:
-            message.role,
-
-          content:
-            message.content
-
-        })
-      );
-
-    renderMessages();
-
-  } else {
-
-    renderSidebar();
-
-  }
+  renderMessages();
 
 }
 
+
+/* START */
 
 loadInitialState();
 
