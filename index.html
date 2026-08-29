@@ -1,3 +1,4 @@
+````html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,10 +10,6 @@
   >
 
   <title>Luna AI</title>
-
-  <!-- =========================================================
-       MATHJAX
-       ========================================================= -->
 
   <script>
     window.MathJax = {
@@ -679,96 +676,6 @@
       padding: 9px;
     }
 
-    .tools-wrapper {
-      position: relative;
-      flex-shrink: 0;
-      align-self: flex-end;
-    }
-
-    .tools-button {
-      width: 42px;
-      height: 42px;
-      border: 0;
-      border-radius: 11px;
-      background: transparent;
-      color: #aebacc;
-      font-size: 25px;
-      display: grid;
-      place-items: center;
-      transition: .15s ease;
-    }
-
-    .tools-button:hover {
-      background: #1c2a3d;
-      color: white;
-    }
-
-    .tools-button.open {
-      background: #24364d;
-      color: white;
-    }
-
-    .tools-menu {
-      position: absolute;
-      left: 0;
-      bottom: 50px;
-      width: 210px;
-      background: #172335;
-      border: 1px solid #304158;
-      border-radius: 13px;
-      padding: 7px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, .5);
-      display: none;
-      z-index: 500;
-    }
-
-    .tools-menu.visible {
-      display: block;
-    }
-
-    .tool-option {
-      width: 100%;
-      border: 0;
-      background: transparent;
-      color: #e3e9f2;
-      border-radius: 9px;
-      padding: 11px 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-align: left;
-      font-size: 13px;
-      transition: .15s ease;
-    }
-
-    .tool-option:hover {
-      background: #24364d;
-    }
-
-    .tool-option.active {
-      background: #2d4664;
-      color: white;
-      box-shadow: inset 0 0 0 1px #58779e;
-    }
-
-    .tool-option-icon {
-      width: 25px;
-      text-align: center;
-      font-size: 17px;
-      flex-shrink: 0;
-    }
-
-    .tool-option-text {
-      flex: 1;
-    }
-
-    .tool-option-check {
-      width: 18px;
-      text-align: center;
-      color: #9fc4ff;
-      font-weight: bold;
-    }
-
     textarea {
       flex: 1;
       width: 100%;
@@ -1249,17 +1156,6 @@
         min-width: 40px;
       }
 
-      .tools-button {
-        width: 40px;
-        height: 40px;
-      }
-
-      .tools-menu {
-        left: 0;
-        bottom: 48px;
-        width: min(210px, calc(100vw - 30px));
-      }
-
       .note {
         font-size: 9px;
         margin-top: 5px;
@@ -1566,71 +1462,6 @@
         id="form"
       >
 
-        <div class="tools-wrapper">
-
-          <button
-            class="tools-button"
-            id="toolsButton"
-            type="button"
-            aria-label="More options"
-            aria-expanded="false"
-          >
-            +
-          </button>
-
-          <div
-            class="tools-menu"
-            id="toolsMenu"
-          >
-
-            <button
-              class="tool-option"
-              id="thinkHarderButton"
-              type="button"
-              aria-pressed="false"
-            >
-
-              <span class="tool-option-icon">
-                🧠
-              </span>
-
-              <span class="tool-option-text">
-                Think harder
-              </span>
-
-              <span
-                class="tool-option-check"
-                id="thinkHarderCheck"
-              ></span>
-
-            </button>
-
-            <button
-              class="tool-option"
-              id="webSearchButton"
-              type="button"
-              aria-pressed="false"
-            >
-
-              <span class="tool-option-icon">
-                🌐
-              </span>
-
-              <span class="tool-option-text">
-                Search the web
-              </span>
-
-              <span
-                class="tool-option-check"
-                id="webSearchCheck"
-              ></span>
-
-            </button>
-
-          </div>
-
-        </div>
-
         <textarea
           id="input"
           rows="1"
@@ -1773,17 +1604,6 @@ let conversation = [];
 
 
 /* =========================================================
-   TOOLS
-   ========================================================= */
-
-let thinkHarderEnabled =
-  localStorage.getItem("luna_think_harder") === "true";
-
-let webSearchEnabled =
-  localStorage.getItem("luna_web_search") === "true";
-
-
-/* =========================================================
    ELEMENTS
    ========================================================= */
 
@@ -1841,24 +1661,6 @@ const moonPhase =
 const deleteAllChatsButton =
   document.getElementById("deleteAllChats");
 
-const toolsButton =
-  document.getElementById("toolsButton");
-
-const toolsMenu =
-  document.getElementById("toolsMenu");
-
-const thinkHarderButton =
-  document.getElementById("thinkHarderButton");
-
-const webSearchButton =
-  document.getElementById("webSearchButton");
-
-const thinkHarderCheck =
-  document.getElementById("thinkHarderCheck");
-
-const webSearchCheck =
-  document.getElementById("webSearchCheck");
-
 
 /* =========================================================
    MATHJAX TYPESCRIPT / RENDER HELPER
@@ -1890,148 +1692,6 @@ async function renderMath(element) {
   }
 
 }
-
-
-/* =========================================================
-   TOOLS MENU
-   ========================================================= */
-
-toolsButton.addEventListener(
-  "click",
-  event => {
-
-    event.stopPropagation();
-
-    const open =
-      toolsMenu.classList.toggle(
-        "visible"
-      );
-
-    toolsButton.classList.toggle(
-      "open",
-      open
-    );
-
-    toolsButton.setAttribute(
-      "aria-expanded",
-      String(open)
-    );
-
-  }
-);
-
-
-toolsMenu.addEventListener(
-  "click",
-  event => {
-
-    event.stopPropagation();
-
-  }
-);
-
-
-document.addEventListener(
-  "click",
-  () => {
-
-    toolsMenu.classList.remove(
-      "visible"
-    );
-
-    toolsButton.classList.remove(
-      "open"
-    );
-
-    toolsButton.setAttribute(
-      "aria-expanded",
-      "false"
-    );
-
-  }
-);
-
-
-/* =========================================================
-   THINK HARDER
-   ========================================================= */
-
-function updateThinkHarderButton() {
-
-  thinkHarderButton.classList.toggle(
-    "active",
-    thinkHarderEnabled
-  );
-
-  thinkHarderButton.setAttribute(
-    "aria-pressed",
-    String(thinkHarderEnabled)
-  );
-
-  thinkHarderCheck.textContent =
-    thinkHarderEnabled
-      ? "✓"
-      : "";
-
-}
-
-
-updateThinkHarderButton();
-
-
-thinkHarderButton.addEventListener(
-  "click",
-  () => {
-
-    thinkHarderEnabled =
-      !thinkHarderEnabled;
-
-    localStorage.setItem(
-      "luna_think_harder",
-      String(thinkHarderEnabled)
-    );
-
-    updateThinkHarderButton();
-
-  }
-);
-
-
-/* =========================================================
-   WEB SEARCH
-   ========================================================= */
-
-function updateWebSearchButton() {
-
-  webSearchButton.classList.toggle(
-    "active",
-    webSearchEnabled
-  );
-
-  webSearchButton.setAttribute(
-    "aria-pressed",
-    String(webSearchEnabled)
-  );
-
-  webSearchCheck.textContent =
-    webSearchEnabled
-      ? "✓"
-      : "";
-
-}
-
-
-webSearchButton.addEventListener(
-  "click",
-  () => {
-
-    webSearchEnabled =
-      !webSearchEnabled;
-
-    updateWebSearchButton();
-
-  }
-);
 
 
 /* =========================================================
@@ -2504,10 +2164,6 @@ function formatMarkdown(text) {
     escapeHTML(text);
 
 
-  /*
-   * Protect code blocks first.
-   */
-
   const codeBlocks = [];
 
   value =
@@ -2527,10 +2183,6 @@ function formatMarkdown(text) {
       }
     );
 
-
-  /*
-   * Protect inline code.
-   */
 
   const inlineCode = [];
 
@@ -2552,11 +2204,6 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-   * Protect display and inline math BEFORE
-   * Markdown processing.
-   */
-
   const mathBlocks = [];
 
   value =
@@ -2574,10 +2221,6 @@ function formatMarkdown(text) {
       }
     );
 
-
-  /*
-   * Markdown.
-   */
 
   value =
     value.replace(
@@ -2600,10 +2243,6 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-   * Unordered lists.
-   */
-
   value =
     value.replace(
       /(?:^|\n)(?:- |\* )(.+)(?=\n|$)/g,
@@ -2620,10 +2259,6 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-   * Ordered lists.
-   */
-
   value =
     value.replace(
       /(?:^|\n)\d+\.\s+(.+)(?=\n|$)/g,
@@ -2631,10 +2266,6 @@ function formatMarkdown(text) {
         `<li>${item}</li>`
     );
 
-
-  /*
-   * Restore inline code.
-   */
 
   value =
     value.replace(
@@ -2644,10 +2275,6 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-   * Restore code blocks.
-   */
-
   value =
     value.replace(
       /@@CODEBLOCK(\d+)@@/g,
@@ -2656,10 +2283,6 @@ function formatMarkdown(text) {
     );
 
 
-  /*
-   * Restore math AFTER Markdown.
-   */
-
   value =
     value.replace(
       /@@MATHBLOCK(\d+)@@/g,
@@ -2667,10 +2290,6 @@ function formatMarkdown(text) {
         mathBlocks[Number(index)]
     );
 
-
-  /*
-   * New lines.
-   */
 
   value =
     value.replace(
@@ -2820,10 +2439,6 @@ function addMessageElement(
 
   messages.appendChild(message);
 
-
-  /*
-   * Render LaTeX after the element exists in the DOM.
-   */
 
   if (
     extraClass !== "thinking"
@@ -3091,9 +2706,6 @@ function splitSpeechText(text) {
 
   const clean =
     String(text)
-      /*
-       * Remove LaTeX commands from spoken output.
-       */
       .replace(/\$\$[\s\S]*?\$\$/g, " ")
       .replace(/\\\[[\s\S]*?\\\]/g, " ")
       .replace(/\\\([\s\S]*?\\\)/g, " ")
@@ -4094,11 +3706,7 @@ async function sendMessage(
   const thinking =
     addMessageElement(
       "assistant",
-      thinkHarderEnabled
-        ? "Thinking deeply..."
-        : webSearchEnabled
-          ? "Searching the web..."
-          : "Thinking...",
+      "Thinking...",
       "thinking"
     );
 
@@ -4116,20 +3724,6 @@ async function sendMessage(
 
 
   try {
-
-    console.log("LUNA REQUEST TO SERVER:", {
-      thinkHarder:
-        thinkHarderButton.getAttribute("aria-pressed") === "true",
-      webSearch:
-        webSearchButton.getAttribute("aria-pressed") === "true"
-    });
-
-    console.log("LUNA REQUEST TO SERVER:", {
-      thinkHarder:
-        thinkHarderButton.getAttribute("aria-pressed") === "true",
-      webSearch:
-        webSearchButton.getAttribute("aria-pressed") === "true"
-    });
 
     const response =
       await fetch(
@@ -4153,18 +3747,7 @@ async function sendMessage(
                 conversation,
 
               memory:
-                buildMemoryForLuna(),
-
-              /*
-               * Read the buttons at the exact moment the request
-               * is created. This guarantees the server receives
-               * the state currently shown in the UI.
-               */
-              thinkHarder:
-                thinkHarderButton.getAttribute("aria-pressed") === "true",
-
-              webSearch:
-                webSearchButton.getAttribute("aria-pressed") === "true"
+                buildMemoryForLuna()
 
             })
 
@@ -4412,10 +3995,6 @@ function loadInitialState() {
   conversation =
     [];
 
-  updateThinkHarderButton();
-
-  updateWebSearchButton();
-
   renderSidebar();
 
   renderMessages();
@@ -4429,3 +4008,4 @@ loadInitialState();
 
 </body>
 </html>
+````
