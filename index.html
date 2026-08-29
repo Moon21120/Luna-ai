@@ -472,6 +472,66 @@
       border-top-right-radius: 4px;
     }
 
+    /* MARKDOWN */
+
+    .message-content strong {
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .message-content em {
+      font-style: italic;
+    }
+
+    .message-content del {
+      opacity: 0.75;
+    }
+
+    .message-content code {
+      background: #1c2939;
+      border: 1px solid #2c3c50;
+      border-radius: 5px;
+      padding: 2px 5px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.9em;
+    }
+
+    .message-content pre {
+      display: block;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      background: #0a111b;
+      border: 1px solid #263547;
+      border-radius: 9px;
+      padding: 12px;
+      margin: 10px 0;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .message-content pre code {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    .message-content ul,
+    .message-content ol {
+      margin: 8px 0;
+      padding-left: 24px;
+    }
+
+    .message-content li {
+      margin: 3px 0;
+    }
+
+    .message-content a {
+      color: #8db9ff;
+      text-decoration: underline;
+    }
+
     .thinking {
       color: #7f8da0;
       font-style: italic;
@@ -1522,6 +1582,211 @@ function showChatMenu(
 }
 
 
+/* =========================================================
+   SAFE MARKDOWN FORMATTER
+   ========================================================= */
+
+/*
+  Luna can now use basic Markdown:
+
+  **bold**
+  *italic*
+  ~~strikethrough~~
+  `inline code`
+  ```code blocks```
+
+  Mathematical symbols are preserved because
+  the original text is never stripped or normalized.
+
+  HTML is escaped first, so Luna's responses
+  cannot inject arbitrary HTML into the page.
+*/
+
+function escapeHTML(text) {
+
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+function formatMarkdown(text) {
+
+  if (text === null || text === undefined) {
+    return "";
+  }
+
+  let value =
+    escapeHTML(text);
+
+
+  /*
+    Protect fenced code blocks first.
+  */
+
+  const codeBlocks = [];
+
+  value =
+    value.replace(
+      /```([\s\S]*?)```/g,
+      (match, code) => {
+
+        const index =
+          codeBlocks.length;
+
+        codeBlocks.push(
+          `<pre><code>${code.trim()}</code></pre>`
+        );
+
+        return `@@CODEBLOCK${index}@@`;
+
+      }
+    );
+
+
+  /*
+    Protect inline code.
+  */
+
+  const inlineCode = [];
+
+  value =
+    value.replace(
+      /`([^`\n]+)`/g,
+      (match, code) => {
+
+        const index =
+          inlineCode.length;
+
+        inlineCode.push(
+          `<code>${code}</code>`
+        );
+
+        return `@@INLINECODE${index}@@`;
+
+      }
+    );
+
+
+  /*
+    Bold.
+  */
+
+  value =
+    value.replace(
+      /\*\*(.+?)\*\*/g,
+      "<strong>$1</strong>"
+    );
+
+
+  /*
+    Italic using single *.
+  */
+
+  value =
+    value.replace(
+      /(^|[^\*])\*([^*\n]+)\*(?!\*)/g,
+      "$1<em>$2</em>"
+    );
+
+
+  /*
+    Strikethrough.
+  */
+
+  value =
+    value.replace(
+      /~~(.+?)~~/g,
+      "<del>$1</del>"
+    );
+
+
+  /*
+    Restore inline code.
+  */
+
+  value =
+    value.replace(
+      /@@INLINECODE(\d+)@@/g,
+      (match, index) =>
+        inlineCode[Number(index)]
+    );
+
+
+  /*
+    Restore fenced code blocks.
+  */
+
+  value =
+    value.replace(
+      /@@CODEBLOCK(\d+)@@/g,
+      (match, index) =>
+        codeBlocks[Number(index)]
+    );
+
+
+  /*
+    Basic unordered lists.
+
+    "- item"
+    "* item"
+  */
+
+  value =
+    value.replace(
+      /(?:^|\n)(?:- |\* )(.+)(?=\n|$)/g,
+      (match, item) =>
+        `<li>${item}</li>`
+    );
+
+
+  /*
+    Group consecutive list items.
+  */
+
+  value =
+    value.replace(
+      /(?:<li>.*?<\/li>\n?)+/g,
+      list => {
+
+        return `<ul>${list}</ul>`;
+
+      }
+    );
+
+
+  /*
+    Basic ordered lists.
+  */
+
+  value =
+    value.replace(
+      /(?:^|\n)\d+\.\s+(.+)(?=\n|$)/g,
+      (match, item) =>
+        `<li>${item}</li>`
+    );
+
+
+  /*
+    Preserve normal newlines.
+  */
+
+  value =
+    value.replace(
+      /\n/g,
+      "<br>"
+    );
+
+
+  return value;
+
+}
+
+
 /* MESSAGES */
 
 function renderMessages() {
@@ -1608,8 +1873,30 @@ function addMessageElement(
   content.className =
     "message-content";
 
-  content.textContent =
-    text;
+
+  /*
+    IMPORTANT:
+
+    Previously this used:
+
+      content.textContent = text;
+
+    That caused Markdown to appear literally.
+
+    Now we safely convert Markdown into HTML.
+  */
+
+  if (extraClass === "thinking") {
+
+    content.textContent =
+      text;
+
+  } else {
+
+    content.innerHTML =
+      formatMarkdown(text);
+
+  }
 
 
   box.appendChild(
@@ -1740,10 +2027,6 @@ let speechPlaying = false;
 let speechGeneration = 0;
 
 
-/*
-  Check whether the browser supports speech.
-*/
-
 function speechSupported() {
 
   return (
@@ -1753,14 +2036,6 @@ function speechSupported() {
 
 }
 
-
-/*
-  Get the best Luna voice.
-
-  Mobile browsers sometimes return an empty voice
-  list initially, so this function is intentionally
-  called multiple times.
-*/
 
 function getLunaVoice() {
 
@@ -1842,20 +2117,6 @@ function getLunaVoice() {
 }
 
 
-/*
-  MOBILE SPEECH UNLOCK
-
-  This is the important part.
-
-  The user taps Voice Call, and immediately
-  we perform a tiny speech operation while
-  the browser still considers the action
-  user-initiated.
-
-  This helps Safari/iOS and some Android
-  browsers allow later speech.
-*/
-
 function unlockSpeech() {
 
   if (!speechSupported()) {
@@ -1907,11 +2168,6 @@ function unlockSpeech() {
     speechUnlocked =
       true;
 
-    /*
-      Some mobile browsers pause speech
-      automatically. Resume it shortly after.
-    */
-
     setTimeout(
       () => {
 
@@ -1956,13 +2212,6 @@ function unlockSpeech() {
 }
 
 
-/*
-  Split Luna's answer into manageable chunks.
-
-  Mobile speech engines are much more reliable
-  with shorter utterances.
-*/
-
 function splitSpeechText(text) {
 
   if (!text) return [];
@@ -1974,10 +2223,6 @@ function splitSpeechText(text) {
 
   if (!clean) return [];
 
-
-  /*
-    Split at sentence boundaries first.
-  */
 
   const sentences =
     clean.match(
@@ -2022,10 +2267,6 @@ function splitSpeechText(text) {
 
       }
 
-      /*
-        If one sentence is extremely long,
-        split it by words.
-      */
 
       if (trimmed.length > 220) {
 
@@ -2106,10 +2347,6 @@ function splitSpeechText(text) {
 }
 
 
-/*
-  Stop Luna speaking.
-*/
-
 function stopLunaSpeaking() {
 
   speechGeneration++;
@@ -2138,13 +2375,6 @@ function stopLunaSpeaking() {
 }
 
 
-/*
-  Speak one chunk at a time.
-
-  The next chunk starts from onend instead
-  of trying to speak everything simultaneously.
-*/
-
 function speakNextChunk(
   generation
 ) {
@@ -2166,10 +2396,6 @@ function speakNextChunk(
     speechPlaying =
       false;
 
-    /*
-      Only restart listening AFTER
-      Luna has completely finished speaking.
-    */
 
     if (
       voiceMode &&
@@ -2273,10 +2499,6 @@ function speakNextChunk(
 
       }
 
-      /*
-        Give mobile speech engines a tiny
-        moment between utterances.
-      */
 
       setTimeout(
         () => {
@@ -2319,11 +2541,6 @@ function speakNextChunk(
       );
 
 
-      /*
-        Some mobile browsers report "interrupted"
-        when moving between chunks. Continue.
-      */
-
       if (
         generation === speechGeneration
       ) {
@@ -2345,11 +2562,6 @@ function speakNextChunk(
 
 
   try {
-
-    /*
-      Mobile Safari occasionally pauses a
-      synthesis queue. Resume before speaking.
-    */
 
     if (
       window.speechSynthesis.paused
@@ -2378,10 +2590,6 @@ function speakNextChunk(
 }
 
 
-/*
-  Main Luna speech function.
-*/
-
 function speakAsLuna(text) {
 
   if (!speechSupported()) {
@@ -2394,12 +2602,6 @@ function speakAsLuna(text) {
 
   }
 
-
-  /*
-    If speech wasn't unlocked yet,
-    try anyway. Normally Voice Call has
-    already unlocked it.
-  */
 
   if (!speechUnlocked) {
 
@@ -2433,10 +2635,6 @@ function speakAsLuna(text) {
     speechGeneration;
 
 
-  /*
-    Resume the speech engine before starting.
-  */
-
   try {
 
     window.speechSynthesis.resume();
@@ -2457,10 +2655,6 @@ function speakAsLuna(text) {
 }
 
 
-/*
-  Browser voice lists load asynchronously.
-*/
-
 if (speechSupported()) {
 
   window.speechSynthesis.onvoiceschanged =
@@ -2470,11 +2664,6 @@ if (speechSupported()) {
 
     };
 
-
-  /*
-    Force the browser to initialize
-    the voice engine.
-  */
 
   setTimeout(
     () => {
@@ -2487,13 +2676,6 @@ if (speechSupported()) {
 
 }
 
-
-/*
-  Keep mobile speech alive.
-
-  Some browsers pause speech when the
-  page is busy or after a short period.
-*/
 
 setInterval(
   () => {
@@ -2616,11 +2798,6 @@ if (SpeechRecognition) {
         false;
 
 
-      /*
-        Don't immediately kill voice mode
-        for temporary mobile microphone errors.
-      */
-
       if (
         event.error === "no-speech"
       ) {
@@ -2716,14 +2893,6 @@ function startVoiceCall() {
 
   }
 
-
-  /*
-    IMPORTANT:
-    Unlock speech BEFORE starting the microphone.
-
-    This happens directly from the user's
-    Voice Call tap.
-  */
 
   unlockSpeech();
 
@@ -2972,11 +3141,6 @@ async function sendMessage(
     });
 
 
-    /*
-      Voice mode:
-      Luna speaks automatically.
-    */
-
     if (fromVoice) {
 
       speakAsLuna(
@@ -3035,10 +3199,6 @@ async function sendMessage(
     sendButton.disabled =
       false;
 
-    /*
-      Don't steal focus on mobile while
-      the user is using voice mode.
-    */
 
     if (!fromVoice) {
 
