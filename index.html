@@ -948,6 +948,256 @@
       text-align: center;
     }
 
+
+    /* =========================================================
+       EMF READER SCREEN
+       ========================================================= */
+
+    .emf-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 5100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(
+          circle at center,
+          #16253a 0%,
+          #0b111a 48%,
+          #05080d 100%
+        );
+      overflow-y: auto;
+    }
+
+    .emf-screen.active {
+      display: flex;
+    }
+
+    .emf-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      min-height: 75px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      background: rgba(5,8,13,.25);
+      padding: 12px 70px;
+      text-align: center;
+    }
+
+    .emf-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .emf-subtitle {
+      color: #8997aa;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .emf-close {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      width: 40px;
+      height: 40px;
+      border: 1px solid #34465d;
+      border-radius: 11px;
+      background: #182538;
+      color: white;
+      font-size: 22px;
+    }
+
+    .emf-close:hover {
+      background: #26364b;
+    }
+
+    .emf-device {
+      width: min(360px, 92vw);
+      margin-top: 35px;
+      padding: 24px 20px 20px;
+      border-radius: 28px;
+      background: linear-gradient(145deg, #202d3d, #0c131d);
+      border: 1px solid #3b4d63;
+      box-shadow:
+        0 25px 70px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .emf-device-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #9eacbd;
+      font-size: 12px;
+      letter-spacing: .5px;
+      margin-bottom: 16px;
+    }
+
+    .emf-reader-face {
+      position: relative;
+      min-height: 300px;
+      border-radius: 20px;
+      border: 1px solid #2e4055;
+      background: #070d14;
+      padding: 24px 18px;
+      overflow: hidden;
+    }
+
+    .emf-reader-face::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(
+          transparent 49%,
+          rgba(255,255,255,.025) 50%,
+          transparent 51%
+        );
+      background-size: 100% 8px;
+      pointer-events: none;
+    }
+
+    .emf-meter-label {
+      position: relative;
+      text-align: center;
+      color: #8b9aab;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .emf-value {
+      position: relative;
+      text-align: center;
+      margin-top: 12px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 48px;
+      font-weight: 700;
+      color: #65d391;
+      text-shadow: 0 0 20px rgba(101,211,145,.25);
+      transition: color .18s ease, text-shadow .18s ease;
+    }
+
+    .emf-unit {
+      position: relative;
+      text-align: center;
+      color: #738398;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .emf-bars {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 5px;
+      height: 115px;
+      margin-top: 20px;
+    }
+
+    .emf-bar {
+      width: 11px;
+      border-radius: 5px 5px 2px 2px;
+      background: #233244;
+      transition: height .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+
+    .emf-status {
+      min-height: 28px;
+      margin-top: 18px;
+      text-align: center;
+      font-size: 14px;
+      color: #aab7c8;
+      font-weight: 600;
+    }
+
+    .emf-status.anomaly {
+      color: #ff6666;
+      text-shadow: 0 0 16px rgba(255,80,80,.3);
+    }
+
+    .emf-status.unsupported {
+      color: #ffbd72;
+    }
+
+    .emf-description {
+      max-width: 620px;
+      margin: 18px auto 0;
+      color: #78879a;
+      font-size: 11px;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    .emf-start {
+      margin-top: 18px;
+      border: 1px solid #344b65;
+      background: #1b2c41;
+      color: white;
+      border-radius: 12px;
+      padding: 11px 18px;
+      font-size: 13px;
+    }
+
+    .emf-start:hover {
+      background: #263d57;
+    }
+
+    .emf-alert {
+      animation: emfAlert .45s ease-in-out 3;
+    }
+
+    @keyframes emfAlert {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.025);
+      }
+    }
+
+    @media (max-width: 700px) {
+      .emf-top {
+        min-height: 64px;
+        padding: 10px 58px 10px 18px;
+      }
+
+      .emf-device {
+        margin-top: 42px;
+        padding: 17px 14px 15px;
+      }
+
+      .emf-reader-face {
+        min-height: 270px;
+      }
+
+      .emf-value {
+        font-size: 42px;
+      }
+
+      .emf-close {
+        right: 10px;
+        top: 12px;
+      }
+
+      .emf-description {
+        font-size: 10px;
+      }
+
+      .emf-button span:last-child {
+        display: none;
+      }
+    }
+
     /* =========================================================
        TABLET
        ========================================================= */
@@ -1369,6 +1619,16 @@
         <span>Voice Call</span>
       </button>
 
+      <button
+        class="voice-call emf-button"
+        id="emfReaderButton"
+        type="button"
+        aria-label="Open EMF reader"
+      >
+        <span>📡</span>
+        <span>EMF Reader</span>
+      </button>
+
     </header>
 
     <section
@@ -1494,6 +1754,94 @@
     </div>
 
   </main>
+
+</div>
+
+
+<!-- =========================================================
+     EMF READER SCREEN
+     ========================================================= -->
+
+<div
+  class="emf-screen"
+  id="emfScreen"
+>
+
+  <div class="emf-top">
+    <div>
+      <div class="emf-title">
+        EMF Reader
+      </div>
+      <div class="emf-subtitle">
+        Magnetic field monitor
+      </div>
+    </div>
+
+    <button
+      class="emf-close"
+      id="emfCloseButton"
+      type="button"
+      aria-label="Close EMF reader"
+      title="Close EMF reader"
+    >
+      ×
+    </button>
+  </div>
+
+  <div class="emf-device" id="emfDevice">
+
+    <div class="emf-device-top">
+      <span>LUNA FIELD SENSOR</span>
+      <span id="emfConnection">OFFLINE</span>
+    </div>
+
+    <div class="emf-reader-face">
+
+      <div class="emf-meter-label">
+        Magnetic field strength
+      </div>
+
+      <div
+        class="emf-value"
+        id="emfValue"
+      >
+        0.0
+      </div>
+
+      <div class="emf-unit">
+        µT
+      </div>
+
+      <div
+        class="emf-bars"
+        id="emfBars"
+        aria-label="EMF level meter"
+      ></div>
+
+      <div
+        class="emf-status"
+        id="emfStatus"
+      >
+        Ready
+      </div>
+
+    </div>
+
+    <button
+      class="emf-start"
+      id="emfStartButton"
+      type="button"
+    >
+      Start Reader
+    </button>
+
+    <div class="emf-description">
+      This reader can only use a phone's magnetometer when the browser
+      exposes one. A sudden magnetic-field change is labeled an
+      <strong>anomaly</strong>; it does not prove that a ghost is present.
+    </div>
+
+  </div>
 
 </div>
 
@@ -1659,6 +2007,33 @@ const moonPhase =
 
 const deleteAllChatsButton =
   document.getElementById("deleteAllChats");
+
+const emfReaderButton =
+  document.getElementById("emfReaderButton");
+
+const emfScreen =
+  document.getElementById("emfScreen");
+
+const emfCloseButton =
+  document.getElementById("emfCloseButton");
+
+const emfStartButton =
+  document.getElementById("emfStartButton");
+
+const emfValue =
+  document.getElementById("emfValue");
+
+const emfStatus =
+  document.getElementById("emfStatus");
+
+const emfConnection =
+  document.getElementById("emfConnection");
+
+const emfBars =
+  document.getElementById("emfBars");
+
+const emfDevice =
+  document.getElementById("emfDevice");
 
 
 /* =========================================================
@@ -3373,6 +3748,455 @@ function stopRecognition() {
 
 
 /* =========================================================
+   EMF READER
+   ========================================================= */
+
+let emfSensor = null;
+let emfRunning = false;
+let emfValues = [];
+let emfBaseline = null;
+let emfLastValue = 0;
+let emfLastSpikeTime = 0;
+let emfPermissionPending = false;
+
+function isPhoneDevice() {
+  const ua = navigator.userAgent || navigator.vendor || "";
+
+  const mobileUA =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+  const touchDevice =
+    ("ontouchstart" in window) ||
+    navigator.maxTouchPoints > 0;
+
+  return mobileUA || (touchDevice && window.innerWidth <= 900);
+}
+
+function buildEMFBars() {
+  emfBars.innerHTML = "";
+
+  for (let i = 0; i < 18; i++) {
+    const bar = document.createElement("div");
+    bar.className = "emf-bar";
+    bar.style.height = `${12 + i * 3}px`;
+    emfBars.appendChild(bar);
+  }
+}
+
+function updateEMFDisplay(value) {
+  const safeValue = Number.isFinite(value) ? value : 0;
+
+  emfValue.textContent =
+    safeValue.toFixed(1);
+
+  const normalized =
+    Math.min(
+      1,
+      Math.max(
+        0,
+        safeValue / 100
+      )
+    );
+
+  const bars =
+    Array.from(
+      emfBars.children
+    );
+
+  const activeCount =
+    Math.round(
+      normalized * bars.length
+    );
+
+  bars.forEach(
+    (bar, index) => {
+      const active =
+        index < activeCount;
+
+      bar.style.background =
+        active
+          ? "hsl(" +
+            Math.max(
+              0,
+              120 - normalized * 120
+            ) +
+            ", 75%, 52%)"
+          : "#233244";
+
+      bar.style.boxShadow =
+        active
+          ? "0 0 9px rgba(255,255,255,.08)"
+          : "none";
+    }
+  );
+
+  const hue =
+    Math.max(
+      0,
+      120 - normalized * 120
+    );
+
+  emfValue.style.color =
+    `hsl(${hue}, 75%, 62%)`;
+
+  emfValue.style.textShadow =
+    `0 0 20px hsla(${hue}, 75%, 55%, .25)`;
+}
+
+function calculateMagneticField(x, y, z) {
+  return Math.sqrt(
+    (x * x) +
+    (y * y) +
+    (z * z)
+  );
+}
+
+function handleEMFReading(event) {
+  const x =
+    Number.isFinite(event.magneticFieldX)
+      ? event.magneticFieldX
+      : 0;
+
+  const y =
+    Number.isFinite(event.magneticFieldY)
+      ? event.magneticFieldY
+      : 0;
+
+  const z =
+    Number.isFinite(event.magneticFieldZ)
+      ? event.magneticFieldZ
+      : 0;
+
+  const magnitude =
+    calculateMagneticField(
+      x,
+      y,
+      z
+    );
+
+  if (!Number.isFinite(magnitude)) {
+    return;
+  }
+
+  emfLastValue =
+    magnitude;
+
+  emfValues.push(magnitude);
+
+  if (emfValues.length > 30) {
+    emfValues.shift();
+  }
+
+  /*
+    Establish a rolling baseline from recent readings.
+    A large sudden increase is treated as an anomaly.
+  */
+  if (
+    emfBaseline === null ||
+    emfValues.length < 8
+  ) {
+    emfBaseline =
+      emfValues.reduce(
+        (sum, item) => sum + item,
+        0
+      ) /
+      emfValues.length;
+  } else {
+    const recentAverage =
+      emfValues
+        .slice(0, -1)
+        .reduce(
+          (sum, item) => sum + item,
+          0
+        ) /
+      Math.max(
+        1,
+        emfValues.length - 1
+      );
+
+    emfBaseline =
+      (emfBaseline * 0.92) +
+      (recentAverage * 0.08);
+  }
+
+  updateEMFDisplay(
+    magnitude
+  );
+
+  const baseline =
+    Math.max(
+      emfBaseline || 0,
+      0.01
+    );
+
+  const suddenIncrease =
+    magnitude >
+    Math.max(
+      baseline * 2.5,
+      baseline + 25
+    );
+
+  const now =
+    Date.now();
+
+  if (
+    suddenIncrease &&
+    now - emfLastSpikeTime > 2500
+  ) {
+    emfLastSpikeTime =
+      now;
+
+    emfStatus.className =
+      "emf-status anomaly";
+
+    emfStatus.textContent =
+      "⚠ Anomaly detected";
+
+    emfDevice.classList.remove(
+      "emf-alert"
+    );
+
+    void emfDevice.offsetWidth;
+
+    emfDevice.classList.add(
+      "emf-alert"
+    );
+  } else if (
+    now - emfLastSpikeTime > 3000
+  ) {
+    emfStatus.className =
+      "emf-status";
+
+    emfStatus.textContent =
+      "Monitoring magnetic field...";
+  }
+}
+
+function stopEMFReader() {
+  if (emfSensor) {
+    try {
+      emfSensor.stop();
+    } catch (error) {
+      console.error(
+        "Could not stop magnetometer:",
+        error
+      );
+    }
+  }
+
+  emfSensor =
+    null;
+
+  emfRunning =
+    false;
+
+  emfConnection.textContent =
+    "OFFLINE";
+
+  emfStartButton.textContent =
+    "Start Reader";
+}
+
+async function startEMFReader() {
+  if (!isPhoneDevice()) {
+    emfStatus.className =
+      "emf-status unsupported";
+
+    emfStatus.textContent =
+      "You need a phone with an EMF reader for this.";
+
+    emfConnection.textContent =
+      "PHONE REQUIRED";
+
+    return;
+  }
+
+  /*
+    Browser support varies. The Generic Sensor API is not available
+    in every browser or on every phone.
+  */
+  if (!("Magnetometer" in window)) {
+    emfStatus.className =
+      "emf-status unsupported";
+
+    emfStatus.textContent =
+      "This phone/browser does not expose its magnetometer.";
+
+    emfConnection.textContent =
+      "NOT SUPPORTED";
+
+    return;
+  }
+
+  if (emfRunning) {
+    stopEMFReader();
+
+    emfStatus.className =
+      "emf-status";
+
+    emfStatus.textContent =
+      "Reader stopped.";
+
+    return;
+  }
+
+  try {
+    emfPermissionPending =
+      true;
+
+    emfSensor =
+      new Magnetometer({
+        frequency: 10
+      });
+
+    emfValues =
+      [];
+
+    emfBaseline =
+      null;
+
+    emfLastSpikeTime =
+      0;
+
+    emfSensor.addEventListener(
+      "reading",
+      handleEMFReading
+    );
+
+    emfSensor.addEventListener(
+      "error",
+      event => {
+        console.error(
+          "Magnetometer error:",
+          event.error
+        );
+
+        stopEMFReader();
+
+        emfStatus.className =
+          "emf-status unsupported";
+
+        emfStatus.textContent =
+          "The phone blocked access to its magnetometer.";
+      }
+    );
+
+    emfSensor.start();
+
+    emfRunning =
+      true;
+
+    emfConnection.textContent =
+      "ONLINE";
+
+    emfStartButton.textContent =
+      "Stop Reader";
+
+    emfStatus.className =
+      "emf-status";
+
+    emfStatus.textContent =
+      "Calibrating sensor...";
+
+  } catch (error) {
+    console.error(
+      "Could not start magnetometer:",
+      error
+    );
+
+    stopEMFReader();
+
+    emfStatus.className =
+      "emf-status unsupported";
+
+    emfStatus.textContent =
+      "Magnetometer access was denied or is unavailable.";
+
+  } finally {
+    emfPermissionPending =
+      false;
+  }
+}
+
+function openEMFScreen() {
+  emfScreen.classList.add(
+    "active"
+  );
+
+  buildEMFBars();
+
+  updateEMFDisplay(0);
+
+  if (!isPhoneDevice()) {
+    emfConnection.textContent =
+      "PHONE REQUIRED";
+
+    emfStatus.className =
+      "emf-status unsupported";
+
+    emfStatus.textContent =
+      "You need a phone with an EMF reader for this.";
+
+    emfStartButton.style.display =
+      "none";
+
+    return;
+  }
+
+  emfStartButton.style.display =
+    "inline-block";
+
+  emfConnection.textContent =
+    "READY";
+
+  emfStatus.className =
+    "emf-status";
+
+  if ("Magnetometer" in window) {
+    emfStatus.textContent =
+      "Ready to scan.";
+  } else {
+    emfStatus.className =
+      "emf-status unsupported";
+
+    emfStatus.textContent =
+      "This browser does not expose the phone's magnetometer.";
+  }
+}
+
+function closeEMFScreen() {
+  stopEMFReader();
+
+  emfScreen.classList.remove(
+    "active"
+  );
+
+  emfStatus.className =
+    "emf-status";
+
+  emfStatus.textContent =
+    "Ready";
+
+  emfStartButton.style.display =
+    "inline-block";
+}
+
+emfReaderButton.addEventListener(
+  "click",
+  openEMFScreen
+);
+
+emfCloseButton.addEventListener(
+  "click",
+  closeEMFScreen
+);
+
+emfStartButton.addEventListener(
+  "click",
+  startEMFReader
+);
+
+/* =========================================================
    MOON CYCLE
    ========================================================= */
 
@@ -3983,6 +4807,23 @@ setInterval(
 
 
 /* =========================================================
+   EMF SCREEN ESCAPE
+   ========================================================= */
+
+document.addEventListener(
+  "keydown",
+  event => {
+    if (
+      event.key === "Escape" &&
+      emfScreen.classList.contains("active")
+    ) {
+      closeEMFScreen();
+    }
+  }
+);
+
+
+/* =========================================================
    STARTUP
    ========================================================= */
 
@@ -4007,4 +4848,3 @@ loadInitialState();
 
 </body>
 </html>
-````
