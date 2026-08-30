@@ -1836,8 +1836,11 @@
     </button>
 
     <div class="emf-description">
-      This reader can only use a phone's magnetometer when the browser
-      exposes one. A sudden magnetic-field change is labeled an
+      This reader prefers the phone's actual magnetic-field sensor on
+      iPhone/iPad and Android. Readings are filtered and calibrated for a
+      steadier result. If a browser exposes only motion sensors, Luna will
+      tell you that it cannot produce a true EMF reading instead of faking one.
+      A sudden magnetic-field change is labeled an
       <strong>anomaly</strong>; it does not prove that a ghost is present.
     </div>
 
@@ -3748,53 +3751,139 @@ function stopRecognition() {
 
 
 /* =========================================================
-   EMF READER
+   EMF READER — iPHONE + ANDROID COMPATIBILITY
    ========================================================= */
+
+/*
+  Priority:
+  1. Use a real magnetometer whenever the browser exposes one.
+  2. Support both Generic Sensor API and DeviceMotion fallback.
+  3. On iPhone/iPad, request motion permission from a user gesture.
+  4. Never invent a magnetic-field value when no usable sensor exists.
+
+  Important:
+  DeviceMotion's acceleration values are NOT magnetic-field readings.
+  They are therefore only used as a compatibility/fallback indicator,
+  not converted into fake µT values. Accurate µT readings require a
+  browser API that exposes the phone's magnetometer.
+*/
 
 let emfSensor = null;
 let emfRunning = false;
+let emfSensorMode = null;
 let emfValues = [];
 let emfBaseline = null;
+let emfFilteredValue = null;
 let emfLastValue = 0;
 let emfLastSpikeTime = 0;
-let emfPermissionPending = false;
+let emfCalibrationTimer = null;
+let emfCalibrationSamples = [];
+let emfMotionHandler = null;
+let emfLastMotionTime = 0;
+
+const EMF_SAMPLE_FREQUENCY = 20;
+const EMF_HISTORY_SIZE = 60;
+const EMF_CALIBRATION_MS = 2500;
+const EMF_SPIKE_RATIO = 1.65;
+const EMF_SPIKE_ABSOLUTE = 18;
 
 function isPhoneDevice() {
-  const ua = navigator.userAgent || navigator.vendor || "";
+  const ua =
+    navigator.userAgent ||
+    navigator.vendor ||
+    "";
 
   const mobileUA =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+      .test(ua);
 
   const touchDevice =
-    ("ontouchstart" in window) ||
+    "ontouchstart" in window ||
     navigator.maxTouchPoints > 0;
 
-  return mobileUA || (touchDevice && window.innerWidth <= 900);
+  const compactTouchDevice =
+    touchDevice &&
+    Math.min(
+      window.innerWidth,
+      window.innerHeight
+    ) <= 1024;
+
+  return mobileUA || compactTouchDevice;
+}
+
+function isIOSDevice() {
+  const ua =
+    navigator.userAgent ||
+    navigator.vendor ||
+    "";
+
+  return (
+    /iPhone|iPad|iPod/i.test(ua) ||
+    (
+      navigator.platform === "MacIntel" &&
+      navigator.maxTouchPoints > 1
+    )
+  );
+}
+
+function isAndroidDevice() {
+  return /Android/i.test(
+    navigator.userAgent || ""
+  );
+}
+
+function magnetometerSupported() {
+  return (
+    "Magnetometer" in window &&
+    typeof window.Magnetometer ===
+      "function"
+  );
+}
+
+function deviceMotionSupported() {
+  return (
+    "DeviceMotionEvent" in window &&
+    typeof window.DeviceMotionEvent ===
+      "function"
+  );
 }
 
 function buildEMFBars() {
   emfBars.innerHTML = "";
 
-  for (let i = 0; i < 18; i++) {
-    const bar = document.createElement("div");
-    bar.className = "emf-bar";
-    bar.style.height = `${12 + i * 3}px`;
+  for (let i = 0; i < 24; i++) {
+    const bar =
+      document.createElement("div");
+
+    bar.className =
+      "emf-bar";
+
+    bar.style.height =
+      `${10 + i * 2.5}px`;
+
     emfBars.appendChild(bar);
   }
 }
 
 function updateEMFDisplay(value) {
-  const safeValue = Number.isFinite(value) ? value : 0;
+  const safeValue =
+    Number.isFinite(value)
+      ? value
+      : 0;
 
   emfValue.textContent =
     safeValue.toFixed(1);
 
+  /*
+    Earth-strength fields are normally in the tens of µT.
+    150 µT leaves useful headroom for nearby electronics and magnets.
+  */
   const normalized =
     Math.min(
       1,
       Math.max(
         0,
-        safeValue / 100
+        safeValue / 150
       )
     );
 
@@ -3805,7 +3894,8 @@ function updateEMFDisplay(value) {
 
   const activeCount =
     Math.round(
-      normalized * bars.length
+      normalized *
+      bars.length
     );
 
   bars.forEach(
@@ -3813,19 +3903,21 @@ function updateEMFDisplay(value) {
       const active =
         index < activeCount;
 
+      const hue =
+        Math.max(
+          0,
+          120 -
+          normalized * 120
+        );
+
       bar.style.background =
         active
-          ? "hsl(" +
-            Math.max(
-              0,
-              120 - normalized * 120
-            ) +
-            ", 75%, 52%)"
+          ? `hsl(${hue}, 75%, 52%)`
           : "#233244";
 
       bar.style.boxShadow =
         active
-          ? "0 0 9px rgba(255,255,255,.08)"
+          ? `0 0 10px hsla(${hue}, 75%, 55%, .28)`
           : "none";
     }
   );
@@ -3833,7 +3925,8 @@ function updateEMFDisplay(value) {
   const hue =
     Math.max(
       0,
-      120 - normalized * 120
+      120 -
+      normalized * 120
     );
 
   emfValue.style.color =
@@ -3843,114 +3936,211 @@ function updateEMFDisplay(value) {
     `0 0 20px hsla(${hue}, 75%, 55%, .25)`;
 }
 
-function calculateMagneticField(x, y, z) {
+function calculateMagneticField(
+  x,
+  y,
+  z
+) {
   return Math.sqrt(
-    (x * x) +
-    (y * y) +
-    (z * z)
+    x * x +
+    y * y +
+    z * z
   );
 }
 
-function handleEMFReading(event) {
-  const x =
-    Number.isFinite(event.magneticFieldX)
-      ? event.magneticFieldX
-      : 0;
+function median(values) {
+  if (!values.length) {
+    return 0;
+  }
 
-  const y =
-    Number.isFinite(event.magneticFieldY)
-      ? event.magneticFieldY
-      : 0;
-
-  const z =
-    Number.isFinite(event.magneticFieldZ)
-      ? event.magneticFieldZ
-      : 0;
-
-  const magnitude =
-    calculateMagneticField(
-      x,
-      y,
-      z
+  const sorted =
+    [...values].sort(
+      (a, b) => a - b
     );
 
-  if (!Number.isFinite(magnitude)) {
+  const middle =
+    Math.floor(
+      sorted.length / 2
+    );
+
+  if (sorted.length % 2) {
+    return sorted[middle];
+  }
+
+  return (
+    sorted[middle - 1] +
+    sorted[middle]
+  ) / 2;
+}
+
+function smoothEMFValue(value) {
+  if (emfFilteredValue === null) {
+    emfFilteredValue =
+      value;
+
+    return value;
+  }
+
+  const difference =
+    Math.abs(
+      value -
+      emfFilteredValue
+    );
+
+  const alpha =
+    difference > 12
+      ? 0.55
+      : 0.22;
+
+  emfFilteredValue =
+    emfFilteredValue +
+    (
+      value -
+      emfFilteredValue
+    ) *
+    alpha;
+
+  return emfFilteredValue;
+}
+
+function setEMFStatus(
+  text,
+  className = "emf-status"
+) {
+  emfStatus.className =
+    className;
+
+  emfStatus.textContent =
+    text;
+}
+
+function finishEMFCalibration() {
+  if (emfCalibrationTimer) {
+    clearTimeout(
+      emfCalibrationTimer
+    );
+
+    emfCalibrationTimer =
+      null;
+  }
+
+  if (emfCalibrationSamples.length) {
+    emfBaseline =
+      median(
+        emfCalibrationSamples
+      );
+  }
+
+  emfCalibrationSamples =
+    [];
+
+  if (emfRunning) {
+    setEMFStatus(
+      "Monitoring magnetic field..."
+    );
+  }
+}
+
+function processMagneticReading(
+  magnitude
+) {
+  if (
+    !Number.isFinite(magnitude) ||
+    magnitude < 0
+  ) {
     return;
   }
 
+  const filtered =
+    smoothEMFValue(
+      magnitude
+    );
+
   emfLastValue =
-    magnitude;
+    filtered;
 
-  emfValues.push(magnitude);
+  emfValues.push(
+    filtered
+  );
 
-  if (emfValues.length > 30) {
+  if (
+    emfValues.length >
+    EMF_HISTORY_SIZE
+  ) {
     emfValues.shift();
   }
 
-  /*
-    Establish a rolling baseline from recent readings.
-    A large sudden increase is treated as an anomaly.
-  */
-  if (
-    emfBaseline === null ||
-    emfValues.length < 8
-  ) {
-    emfBaseline =
-      emfValues.reduce(
-        (sum, item) => sum + item,
-        0
-      ) /
-      emfValues.length;
-  } else {
-    const recentAverage =
-      emfValues
-        .slice(0, -1)
-        .reduce(
-          (sum, item) => sum + item,
-          0
-        ) /
-      Math.max(
-        1,
-        emfValues.length - 1
-      );
+  if (emfBaseline === null) {
+    emfCalibrationSamples.push(
+      filtered
+    );
 
-    emfBaseline =
-      (emfBaseline * 0.92) +
-      (recentAverage * 0.08);
+    setEMFStatus(
+      "Calibrating sensor..."
+    );
+
+    updateEMFDisplay(
+      filtered
+    );
+
+    return;
   }
 
+  const previousBaseline =
+    emfBaseline;
+
+  const recentStable =
+    emfValues.length >= 8
+      ? median(
+          emfValues.slice(-8)
+        )
+      : filtered;
+
+  emfBaseline =
+    (
+      emfBaseline * 0.985
+    ) +
+    (
+      recentStable * 0.015
+    );
+
   updateEMFDisplay(
-    magnitude
+    filtered
   );
 
-  const baseline =
-    Math.max(
-      emfBaseline || 0,
-      0.01
-    );
+  /*
+    A spike must be both proportionally and absolutely larger than
+    the recent baseline. This reduces false positives from sensor noise.
+  */
+  const ratioSpike =
+    filtered >
+    previousBaseline *
+    EMF_SPIKE_RATIO;
+
+  const absoluteSpike =
+    filtered >
+    previousBaseline +
+    EMF_SPIKE_ABSOLUTE;
 
   const suddenIncrease =
-    magnitude >
-    Math.max(
-      baseline * 2.5,
-      baseline + 25
-    );
+    ratioSpike &&
+    absoluteSpike;
 
   const now =
     Date.now();
 
   if (
     suddenIncrease &&
-    now - emfLastSpikeTime > 2500
+    now - emfLastSpikeTime >
+      2500
   ) {
     emfLastSpikeTime =
       now;
 
-    emfStatus.className =
-      "emf-status anomaly";
-
-    emfStatus.textContent =
-      "⚠ Anomaly detected";
+    setEMFStatus(
+      "⚠ Anomaly detected",
+      "emf-status anomaly"
+    );
 
     emfDevice.classList.remove(
       "emf-alert"
@@ -3961,18 +4151,195 @@ function handleEMFReading(event) {
     emfDevice.classList.add(
       "emf-alert"
     );
-  } else if (
-    now - emfLastSpikeTime > 3000
-  ) {
-    emfStatus.className =
-      "emf-status";
 
-    emfStatus.textContent =
-      "Monitoring magnetic field...";
+  } else if (
+    now - emfLastSpikeTime >
+      3500
+  ) {
+    setEMFStatus(
+      "Monitoring magnetic field..."
+    );
   }
 }
 
+function handleMagnetometerReading(
+  event
+) {
+  const x =
+    Number.isFinite(
+      event.magneticFieldX
+    )
+      ? event.magneticFieldX
+      : 0;
+
+  const y =
+    Number.isFinite(
+      event.magneticFieldY
+    )
+      ? event.magneticFieldY
+      : 0;
+
+  const z =
+    Number.isFinite(
+      event.magneticFieldZ
+    )
+      ? event.magneticFieldZ
+      : 0;
+
+  processMagneticReading(
+    calculateMagneticField(
+      x,
+      y,
+      z
+    )
+  );
+}
+
+function handleMotionFallback(
+  event
+) {
+  /*
+    This fallback intentionally does NOT claim to measure EMF.
+    DeviceMotion provides acceleration, not magnetic field strength.
+
+    It exists to give iPhone/iPad users a graceful sensor fallback and
+    to keep the reader architecture ready for browsers that expose a
+    magnetometer through a different API.
+  */
+  emfLastMotionTime =
+    Date.now();
+
+  if (
+    emfSensorMode !==
+    "motion-fallback"
+  ) {
+    return;
+  }
+
+  const rotation =
+    event.rotationRate;
+
+  if (
+    !rotation ||
+    !Number.isFinite(
+      rotation.alpha
+    )
+  ) {
+    return;
+  }
+
+  setEMFStatus(
+    "Motion sensor available — magnetic sensor unavailable.",
+    "emf-status unsupported"
+  );
+}
+
+async function requestIOSMotionPermission() {
+  /*
+    iOS requires permission for DeviceMotionEvent on supported versions.
+    It must be requested from a user-initiated action.
+  */
+  if (
+    !deviceMotionSupported()
+  ) {
+    return false;
+  }
+
+  if (
+    typeof DeviceMotionEvent.requestPermission ===
+    "function"
+  ) {
+    try {
+      const result =
+        await DeviceMotionEvent.requestPermission();
+
+      return result ===
+        "granted";
+    } catch (error) {
+      console.error(
+        "iOS motion permission error:",
+        error
+      );
+
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function requestSensorPermissions() {
+  /*
+    Generic Sensor permission is normally requested when start() is called.
+    iOS's DeviceMotion permission, when present, is explicitly requested here.
+  */
+  if (isIOSDevice()) {
+    return await requestIOSMotionPermission();
+  }
+
+  return true;
+}
+
+function cleanupMotionFallback() {
+  if (
+    emfMotionHandler &&
+    typeof window.removeEventListener ===
+      "function"
+  ) {
+    window.removeEventListener(
+      "devicemotion",
+      emfMotionHandler
+    );
+  }
+
+  emfMotionHandler =
+    null;
+}
+
+function startMotionFallback() {
+  if (
+    !deviceMotionSupported()
+  ) {
+    return false;
+  }
+
+  cleanupMotionFallback();
+
+  emfMotionHandler =
+    handleMotionFallback;
+
+  window.addEventListener(
+    "devicemotion",
+    emfMotionHandler,
+    {
+      passive: true
+    }
+  );
+
+  emfSensorMode =
+    "motion-fallback";
+
+  emfConnection.textContent =
+    "MOTION FALLBACK";
+
+  setEMFStatus(
+    "Magnetic sensor unavailable. Motion sensor detected, but it cannot measure EMF.",
+    "emf-status unsupported"
+  );
+
+  return true;
+}
+
 function stopEMFReader() {
+  if (emfCalibrationTimer) {
+    clearTimeout(
+      emfCalibrationTimer
+    );
+
+    emfCalibrationTimer =
+      null;
+  }
+
   if (emfSensor) {
     try {
       emfSensor.stop();
@@ -3987,7 +4354,18 @@ function stopEMFReader() {
   emfSensor =
     null;
 
+  cleanupMotionFallback();
+
   emfRunning =
+    false;
+
+  emfSensorMode =
+    null;
+
+  emfCalibrationSamples =
+    [];
+
+  emfPermissionPending =
     false;
 
   emfConnection.textContent =
@@ -3997,70 +4375,23 @@ function stopEMFReader() {
     "Start Reader";
 }
 
-async function startEMFReader() {
-  if (!isPhoneDevice()) {
-    emfStatus.className =
-      "emf-status unsupported";
-
-    emfStatus.textContent =
-      "You need a phone with an EMF reader for this.";
-
-    emfConnection.textContent =
-      "PHONE REQUIRED";
-
-    return;
-  }
-
-  /*
-    Browser support varies. The Generic Sensor API is not available
-    in every browser or on every phone.
-  */
-  if (!("Magnetometer" in window)) {
-    emfStatus.className =
-      "emf-status unsupported";
-
-    emfStatus.textContent =
-      "This phone/browser does not expose its magnetometer.";
-
-    emfConnection.textContent =
-      "NOT SUPPORTED";
-
-    return;
-  }
-
-  if (emfRunning) {
-    stopEMFReader();
-
-    emfStatus.className =
-      "emf-status";
-
-    emfStatus.textContent =
-      "Reader stopped.";
-
-    return;
+async function startRealMagnetometer() {
+  if (
+    !magnetometerSupported()
+  ) {
+    return false;
   }
 
   try {
-    emfPermissionPending =
-      true;
-
     emfSensor =
       new Magnetometer({
-        frequency: 10
+        frequency:
+          EMF_SAMPLE_FREQUENCY
       });
-
-    emfValues =
-      [];
-
-    emfBaseline =
-      null;
-
-    emfLastSpikeTime =
-      0;
 
     emfSensor.addEventListener(
       "reading",
-      handleEMFReading
+      handleMagnetometerReading
     );
 
     emfSensor.addEventListener(
@@ -4071,32 +4402,75 @@ async function startEMFReader() {
           event.error
         );
 
-        stopEMFReader();
+        /*
+          Don't pretend the fallback is an EMF reading.
+          If the real sensor fails, give the user the compatibility
+          explanation instead.
+        */
+        if (emfRunning) {
+          stopEMFReader();
 
-        emfStatus.className =
-          "emf-status unsupported";
+          if (
+            startMotionFallback()
+          ) {
+            emfRunning =
+              true;
 
-        emfStatus.textContent =
-          "The phone blocked access to its magnetometer.";
+            emfStartButton.textContent =
+              "Stop Reader";
+          } else {
+            setEMFStatus(
+              "The phone blocked access to its magnetic-field sensor.",
+              "emf-status unsupported"
+            );
+          }
+        }
       }
     );
 
     emfSensor.start();
 
+    emfSensorMode =
+      "magnetometer";
+
     emfRunning =
       true;
 
     emfConnection.textContent =
-      "ONLINE";
+      "MAGNETOMETER";
 
     emfStartButton.textContent =
       "Stop Reader";
 
-    emfStatus.className =
-      "emf-status";
+    setEMFStatus(
+      "Calibrating sensor..."
+    );
 
-    emfStatus.textContent =
-      "Calibrating sensor...";
+    emfValues =
+      [];
+
+    emfBaseline =
+      null;
+
+    emfFilteredValue =
+      null;
+
+    emfLastValue =
+      0;
+
+    emfLastSpikeTime =
+      0;
+
+    emfCalibrationSamples =
+      [];
+
+    emfCalibrationTimer =
+      setTimeout(
+        finishEMFCalibration,
+        EMF_CALIBRATION_MS
+      );
+
+    return true;
 
   } catch (error) {
     console.error(
@@ -4104,13 +4478,133 @@ async function startEMFReader() {
       error
     );
 
+    if (emfSensor) {
+      try {
+        emfSensor.stop();
+      } catch (_) {}
+    }
+
+    emfSensor =
+      null;
+
+    return false;
+  }
+}
+
+async function startEMFReader() {
+  if (emfRunning) {
     stopEMFReader();
 
-    emfStatus.className =
-      "emf-status unsupported";
+    setEMFStatus(
+      "Reader stopped."
+    );
 
-    emfStatus.textContent =
-      "Magnetometer access was denied or is unavailable.";
+    return;
+  }
+
+  if (!isPhoneDevice()) {
+    setEMFStatus(
+      "You need a phone with an EMF reader for this.",
+      "emf-status unsupported"
+    );
+
+    emfConnection.textContent =
+      "PHONE REQUIRED";
+
+    return;
+  }
+
+  if (
+    !magnetometerSupported() &&
+    !deviceMotionSupported()
+  ) {
+    setEMFStatus(
+      "This phone/browser does not expose a usable sensor.",
+      "emf-status unsupported"
+    );
+
+    emfConnection.textContent =
+      "NOT SUPPORTED";
+
+    return;
+  }
+
+  try {
+    emfPermissionPending =
+      true;
+
+    /*
+      On iOS this must happen while the Start Reader button click is still
+      active. Android browsers simply continue if no explicit permission
+      prompt is needed.
+    */
+    const permissionGranted =
+      await requestSensorPermissions();
+
+    if (
+      !permissionGranted &&
+      isIOSDevice()
+    ) {
+      /*
+        Do not claim to have EMF readings if iOS denied motion permission.
+      */
+      setEMFStatus(
+        "Motion/sensor permission was denied.",
+        "emf-status unsupported"
+      );
+
+      emfConnection.textContent =
+        "PERMISSION DENIED";
+
+      return;
+    }
+
+    /*
+      Prefer the actual magnetometer on BOTH platforms.
+    */
+    if (
+      await startRealMagnetometer()
+    ) {
+      return;
+    }
+
+    /*
+      Compatibility fallback:
+      DeviceMotion can confirm that the phone exposes motion sensors,
+      but it cannot be converted into an EMF/µT measurement.
+    */
+    if (
+      startMotionFallback()
+    ) {
+      emfRunning =
+        true;
+
+      emfStartButton.textContent =
+        "Stop Reader";
+
+      return;
+    }
+
+    setEMFStatus(
+      "This phone/browser could not provide its magnetic-field sensor.",
+      "emf-status unsupported"
+    );
+
+    emfConnection.textContent =
+      "NOT SUPPORTED";
+
+  } catch (error) {
+    console.error(
+      "Could not start EMF reader:",
+      error
+    );
+
+    stopEMFReader();
+
+    setEMFStatus(
+      "Sensor access was denied or is unavailable.",
+      "emf-status unsupported"
+    );
 
   } finally {
     emfPermissionPending =
@@ -4131,11 +4625,10 @@ function openEMFScreen() {
     emfConnection.textContent =
       "PHONE REQUIRED";
 
-    emfStatus.className =
-      "emf-status unsupported";
-
-    emfStatus.textContent =
-      "You need a phone with an EMF reader for this.";
+    setEMFStatus(
+      "You need a phone with an EMF reader for this.",
+      "emf-status unsupported"
+    );
 
     emfStartButton.style.display =
       "none";
@@ -4149,18 +4642,26 @@ function openEMFScreen() {
   emfConnection.textContent =
     "READY";
 
-  emfStatus.className =
-    "emf-status";
-
-  if ("Magnetometer" in window) {
-    emfStatus.textContent =
-      "Ready to scan.";
+  if (
+    magnetometerSupported()
+  ) {
+    setEMFStatus(
+      isIOSDevice()
+        ? "Ready — iPhone/iPad magnetometer access available."
+        : "Ready — Android magnetometer access available."
+    );
+  } else if (
+    deviceMotionSupported()
+  ) {
+    setEMFStatus(
+      "A phone sensor is available, but this browser does not expose a magnetic-field sensor.",
+      "emf-status unsupported"
+    );
   } else {
-    emfStatus.className =
-      "emf-status unsupported";
-
-    emfStatus.textContent =
-      "This browser does not expose the phone's magnetometer.";
+    setEMFStatus(
+      "No compatible sensor API was detected.",
+      "emf-status unsupported"
+    );
   }
 }
 
@@ -4171,11 +4672,9 @@ function closeEMFScreen() {
     "active"
   );
 
-  emfStatus.className =
-    "emf-status";
-
-  emfStatus.textContent =
-    "Ready";
+  setEMFStatus(
+    "Ready"
+  );
 
   emfStartButton.style.display =
     "inline-block";
