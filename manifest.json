@@ -1,0 +1,13 @@
+{
+  "name": "Luna AI",
+  "short_name": "Luna",
+  "start_url": "/",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/Luna%20profile.webp",
+      "sizes": "512x512",
+      "type": "image/webp"
+    }
+  ]
+}
